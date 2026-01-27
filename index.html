@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asisten PSI-4C | Smart Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5c67f2;
+            --glass: rgba(255, 255, 255, 0.75);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(to bottom, #a1c4fd 0%, #c2e9fb 100%);
+            overflow-x: hidden;
+            color: #1e293b;
+        }
+
+        /* --- ANIMASI AWAN 3D --- */
+        .cloud-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            filter: blur(60px);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: move linear infinite;
+        }
+
+        @keyframes move {
+            from { transform: translateX(-120%); }
+            to { transform: translateX(120vw); }
+        }
+
+        /* --- HEADER AESTHETIC --- */
+        header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        /* --- JADWAL GRID & CARD --- */
+        #jadwal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .card-hari {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 28px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-height: 280px;
+        }
+
+        .card-hari:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .text-glow {
+            color: var(--primary);
+            text-shadow: 0 0 12px rgba(92, 103, 242, 0.5);
+            font-weight: 800;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .border-samar {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- BUTTONS --- */
+        .btn-music {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            background: white;
+            padding: 12px;
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            cursor: pointer;
+            border: none;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cloud-container">
+        <div class="cloud" style="width: 400px; height: 180px; top: 10%; animation-duration: 70s;"></div>
+        <div class="cloud" style="width: 600px; height: 250px; top: 35%; animation-duration: 120s; opacity: 0.3;"></div>
+        <div class="cloud" style="width: 350px; height: 150px; top: 75%; animation-duration: 50s; opacity: 0.4;"></div>
+    </div>
+
+    <div id="player" style="position: absolute; top: -9999px;"></div>
+    
+    <button onclick="toggleMusic()" id="musicBtn" class="btn-music">🔈</button>
+
+    <header>
+        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight uppercase">PSI-4C Smart Assistant</h1>
+        <p class="text-sm text-slate-600 mt-2 font-medium opacity-80">UIN Walisongo Semarang</p>
+        <button onclick="toggleAdmin()" class="absolute right-6 top-6 bg-slate-800/10 p-2.5 rounded-full hover:bg-slate-800/20 transition">
+            ⚙️
+        </button>
+    </header>
+
+    <main class="p-6 max-w-7xl mx-auto space-y-12">
+        <section>
+            <div class="flex items-center gap-3 mb-6">
+                <span class="text-xl">📝</span>
+                <h2 class="font-bold text-slate-800 tracking-wide uppercase text-sm">Tugas PJ Terbaru</h2>
+            </div>
+            <div id="tugas-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <p class="text-slate-400 text-xs animate-pulse">Menghubungkan ke database...</p>
+            </div>
+        </section>
+
+        <section>
+            <div class="flex items-center gap-3 mb-6">
+                <span class="text-xl">📅</span>
+                <h2 class="font-bold text-slate-800 tracking-wide uppercase text-sm">Jadwal Kuliah Mingguan</h2>
+            </div>
+            <div id="jadwal-grid">
+                <p class="text-slate-400 text-xs animate-pulse">Menyusun jadwal...</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="modal-admin" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden flex items-center justify-center p-4 z-[1000]">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div id="login-section" class="p-8">
+                <h3 class="font-bold text-xl mb-6 text-center text-slate-800">Login PJ Matkul</h3>
+                <input type="password" id="admin-key" placeholder="Masukkan Kunci Akses" class="w-full bg-slate-50 border-0 p-4 rounded-2xl mb-4 focus:ring-2 focus:ring-indigo-500 outline-none text-center font-bold">
+                <button onclick="prosesLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Masuk</button>
+                <button onclick="toggleAdmin()" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">Batal</button>
+            </div>
+
+            <div id="input-section" class="p-8 hidden">
+                <h3 class="font-bold text-lg mb-6 text-indigo-700">Input Tugas Baru</h3>
+                <div class="space-y-4">
+                    <select id="in-mk" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500">
+                        <option>Psikologi Islam</option>
+                        <option>Psikologi Konsumen</option>
+                        <option>Asesmen Kepribadian I</option>
+                        <option>Psikologi Belajar</option>
+                        <option>Falsafah Kesatuan Ilmu</option>
+                        <option>Desain dan Teknik Pelatihan</option>
+                        <option>Metodologi Penelitian Kuantitatif</option>
+                        <option>Al Quran dan Hadits Tematik</option>
+                        <option>Konstruksi Alat Ukur Psikologi</option>
+                        <option>Psikologi Kepemimpinan</option>
+                        <option>Psikologi Kesehatan</option>
+                    </select>
+                    <input type="text" id="in-tugas" placeholder="Detail Tugas" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
+                    <input type="text" id="in-dl" placeholder="Deadline (Contoh: 25 Jan)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
+                    <button onclick="kirimTugas()" id="btn-kirim" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Kirim ke Database</button>
+                    <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-6 uppercase tracking-widest">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
+        const CSV_TUGAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=53529564&single=true&output=csv';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6wSMyP7qBdkrTxk_Rdcd6RU-s6Dxrb1NpkdWfNgRztT_Uvh-mx2NQjBMWFmU40Okd/exec';
+        const KUNCI_VALID = ["PJKELAS4C", "PJ_PSIKOLOGI", "ADMIN4C", "DOSEN_PSI"];
+
+        // --- LOGIKA AUDIO YOUTUBE (NO-COOKIE) ---
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube-nocookie.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        var isPlaying = false;
+        const VIDEO_ID = 'CDHTiOJu0xU'; 
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '0', width: '0',
+                videoId: VIDEO_ID,
+                playerVars: { 
+                    'autoplay': 0, 
+                    'loop': 1, 
+                    'playlist': VIDEO_ID,
+                    'origin': window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            console.log("Audio System: Ready");
+        }
+
+        function toggleMusic() {
+            const btn = document.getElementById('musicBtn');
+            if (!player || typeof player.playVideo !== 'function') return;
+
+            if (!isPlaying) {
+                player.playVideo();
+                btn.innerText = '🔊';
+                isPlaying = true;
+            } else {
+                player.pauseVideo();
+                btn.innerText = '🔈';
+                isPlaying = false;
+            }
+        }
+
+        // --- DATA LOADING ---
+        function muatData() {
+            const proxy = 'https://api.allorigins.win/raw?url=';
+            Papa.parse(proxy + encodeURIComponent(CSV_JADWAL), {
+                download: true, header: true,
+                complete: function(res) { tampilkanJadwal(res.data); }
+            });
+            Papa.parse(proxy + encodeURIComponent(CSV_TUGAS), {
+                download: true, header: true,
+                complete: function(res) { tampilkanTugas(res.data); }
+            });
+            if ("Notification" in window) Notification.requestPermission();
+        }
+
+        function tampilkanJadwal(data) {
+            const container = document.getElementById('jadwal-grid');
+            container.innerHTML = '';
+            const grupHari = data.reduce((acc, item) => {
+                if(item['Mata Kuliah'] && item['Hari']) {
+                    if (!acc[item.Hari]) acc[item.Hari] = [];
+                    acc[item.Hari].push(item);
+                }
+                return acc;
+            }, {});
+
+            const orderHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+            orderHari.forEach(hari => {
+                if(grupHari[hari]) {
+                    let isiHTML = '';
+                    grupHari[hari].forEach((j, index) => {
+                        const daftarDosen = j.Dosen.split(',').map(d => d.trim()).join('<br>');
+                        const isAktif = cekWaktuAktif(j.Jam, hari);
+                        const classGlow = isAktif ? 'text-glow' : 'text-slate-800';
+                        const stylePembatas = index !== grupHari[hari].length - 1 ? 'border-samar pb-5 mb-5' : '';
+
+                        isiHTML += `
+                            <div class="${stylePembatas} flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-sm leading-tight ${classGlow}">${j['Mata Kuliah']}</h3>
+                                        <p class="text-[10px] text-slate-400 mt-2 italic leading-relaxed font-medium">${daftarDosen}</p>
+                                    </div>
+                                    <div class="text-right ml-4">
+                                        <span class="text-[10px] font-black text-indigo-500 block">${j.Jam}</span>
+                                        <span class="inline-block mt-2 px-2 py-0.5 bg-slate-50 text-[9px] font-bold text-slate-400 rounded uppercase border border-slate-100">${j.Ruang}</span>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+                    container.innerHTML += `
+                        <div class="card-hari">
+                            <div class="mb-6"><span class="bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest">${hari}</span></div>
+                            <div class="flex flex-col justify-around flex-1">${isiHTML}</div>
+                        </div>`;
+                }
+            });
+            cekJadwalHariIni(data);
+        }
+
+        function cekWaktuAktif(jamString, hariMatkul) {
+            const d = new Date();
+            const hariSekarang = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d);
+            if (hariMatkul.toLowerCase() !== hariSekarang.toLowerCase()) return false;
+            try {
+                const jamSekarang = d.getHours() + (d.getMinutes() / 60);
+                const jamAwalString = jamString.split('-')[0].trim().replace('.', ':');
+                const [h, m] = jamAwalString.split(':').map(Number);
+                const jamMatkul = h + (m / 60);
+                return (jamSekarang >= (jamMatkul - 0.5) && jamSekarang <= (jamMatkul + 1.5));
+            } catch (e) { return false; }
+        }
+
+        function tampilkanTugas(data) {
+            const container = document.getElementById('tugas-list');
+            container.innerHTML = '';
+            let ada = false;
+            data.forEach(item => {
+                if(item['Tugas']) {
+                    ada = true;
+                    container.innerHTML += `
+                        <div class="bg-white/60 border border-white p-5 rounded-3xl backdrop-blur-sm shadow-sm relative overflow-hidden group">
+                            <p class="text-[9px] font-bold text-indigo-500 uppercase mb-2">${item['Mata Kuliah']}</p>
+                            <h3 class="font-bold text-slate-800 text-sm leading-snug">${item['Tugas']}</h3>
+                            <p class="text-[10px] text-red-500 font-bold mt-4 italic">DL: ${item['Deadline']}</p>
+                        </div>`;
+                }
+            });
+            if(!ada) container.innerHTML = '<p class="col-span-full text-center text-xs text-slate-400 border border-dashed border-slate-300 p-12 rounded-3xl italic bg-white/30">Tenang, belum ada tugas yang diinput.</p>';
+        }
+
+        function cekJadwalHariIni(jadwal) {
+            const hariIni = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(new Date());
+            const kuliahHariIni = jadwal.filter(j => j.Hari && j.Hari.toLowerCase() === hariIni.toLowerCase());
+            if (kuliahHariIni.length > 0 && !sessionStorage.getItem('notif_sent')) {
+                const rincian = kuliahHariIni.map(j => `\n- ${j['Mata Kuliah']} (${j.Jam})`).join('');
+                alert(`✨ Semangat ${hariIni}! \nAda ${kuliahHariIni.length} matkul hari ini:${rincian}`);
+                sessionStorage.setItem('notif_sent', 'true');
+            }
+        }
+
+        function prosesLogin() {
+            const inputKey = document.getElementById('admin-key').value;
+            if(KUNCI_VALID.includes(inputKey)) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('input-section').classList.remove('hidden');
+            } else { alert("Kunci Akses Salah!"); }
+        }
+
+        async function kirimTugas() {
+            const btn = document.getElementById('btn-kirim');
+            const data = {
+                key: document.getElementById('admin-key').value,
+                matkul: document.getElementById('in-mk').value,
+                tugas: document.getElementById('in-tugas').value,
+                deadline: document.getElementById('in-dl').value
+            };
+            btn.innerText = "Mengirim..."; btn.disabled = true;
+            try {
+                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+                alert("Berhasil!"); location.reload();
+            } catch(e) {
+                alert("Gagal."); btn.innerText = "Kirim ke Database"; btn.disabled = false;
+            }
+        }
+
+        function toggleAdmin() { document.getElementById('modal-admin').classList.toggle('hidden'); }
+        function logout() { location.reload(); }
+        window.onload = muatData;
+    </script>
+</body>
+</html>
