@@ -12,7 +12,6 @@
         :root { --primary: #5c67f2; }
         body { margin: 0; padding: 0; min-height: 100vh; font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(to bottom, #a1c4fd 0%, #c2e9fb 100%); overflow-x: hidden; color: #1e293b; }
         
-        /* Animasi Awan */
         .cloud-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
         .cloud { position: absolute; background: white; filter: blur(60px); border-radius: 50%; opacity: 0.5; animation: move linear infinite; }
         @keyframes move { from { transform: translateX(-120%); } to { transform: translateX(120vw); } }
@@ -22,15 +21,15 @@
         #jadwal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
         .card-hari { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 28px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
         
-        /* Perbaikan WIB: Flex nowrap agar tidak turun */
-        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; min-width: 70px; white-space: nowrap; }
+        /* Memberikan jarak lebih pada info waktu dan tempat */
+        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; min-width: 85px; white-space: nowrap; gap: 6px; }
         
         .text-glow { color: var(--primary); text-shadow: 0 0 12px rgba(92, 103, 242, 0.5); font-weight: 800; }
         .border-samar { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
         .tugas-done { opacity: 0.5; filter: grayscale(0.8); }
         .tugas-done h3 { text-decoration: line-through; }
 
-        .countdown-tag { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+        .countdown-tag { font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; }
         .tag-urgent { background: #fee2e2; color: #ef4444; }
         .tag-safe { background: #f0fdf4; color: #22c55e; }
 
@@ -69,7 +68,7 @@
                 <span class="text-[10px] bg-white/50 px-3 py-1 rounded-full font-bold text-slate-500 uppercase">Memory: On Device</span>
             </div>
             <div id="tugas-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <p class="text-slate-400 text-xs">Menghubungkan ke database...</p>
+                <p class="text-slate-400 text-xs text-center col-span-full">Menghubungkan ke database...</p>
             </div>
         </section>
 
@@ -105,7 +104,7 @@
                     <option>Psikologi Kepemimpinan</option><option>Psikologi Kesehatan</option>
                 </select>
                 <input type="text" id="in-tugas" placeholder="Detail Tugas" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
-                <input type="text" id="in-dl" placeholder="Jan 30, 2026" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
+                <input type="text" id="in-dl" placeholder="Format: YYYY-MM-DD (Contoh: 2026-01-30)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
                 <button id="btn-kirim" onclick="kirimTugas()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Kirim ke Database</button>
                 <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-4 uppercase tracking-widest text-center">Logout</button>
             </div>
@@ -140,17 +139,17 @@
                 if(grupHari[hari]) {
                     let isiHTML = '';
                     grupHari[hari].forEach((j, index) => {
-                        const stylePembatas = index !== grupHari[hari].length - 1 ? 'border-samar pb-5 mb-5' : '';
+                        const stylePembatas = index !== grupHari[hari].length - 1 ? 'border-samar pb-6 mb-6' : '';
                         const isAktif = cekWaktuAktif(j.Jam, hari);
                         isiHTML += `
-                            <div class="${stylePembatas} flex justify-between items-start gap-2">
+                            <div class="${stylePembatas} flex justify-between items-start gap-4">
                                 <div class="flex-1">
                                     <h3 class="font-bold text-sm leading-tight ${isAktif ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
-                                    <p class="text-[10px] text-slate-400 mt-1 font-medium">${j.Dosen}</p>
+                                    <p class="text-[10px] text-slate-400 mt-2 font-medium">${j.Dosen}</p>
                                 </div>
                                 <div class="waktu-box">
-                                    <span class="text-[10px] font-bold text-indigo-600">${j.Jam} WIB</span>
-                                    <span class="text-[9px] font-medium text-slate-500 uppercase tracking-tighter">${j.Ruang}</span>
+                                    <span class="text-[10px] font-bold text-indigo-600 tracking-wide">${j.Jam} WIB</span>
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter bg-slate-100 px-2 py-1 rounded">${j.Ruang}</span>
                                 </div>
                             </div>`;
                     });
@@ -171,27 +170,46 @@
                 const idT = item['Tugas'].replace(/\s/g, '');
                 const isD = statusSimpanan[idT] || false;
                 const sisa = hitungSisaHari(item['Deadline']);
-                if (!isD && sisa <= 2 && sisa >= 0) mndsk++;
+                
+                if (!isD && sisa !== null && sisa <= 2 && sisa >= 0) mndsk++;
 
-                let tag = sisa < 0 ? `<span class="countdown-tag bg-slate-200 text-slate-500">Selesai</span>` : 
-                          sisa <= 2 ? `<span class="countdown-tag tag-urgent">🚨 ${sisa} Hari</span>` : 
-                          `<span class="countdown-tag tag-safe">${sisa} Hari</span>`;
+                // Perbaikan Tulisan Sisa Hari
+                let tagText = "";
+                if (sisa === null) tagText = "Cek Deadline";
+                else if (sisa < 0) tagText = "Selesai";
+                else tagText = `${sisa} Hari Lagi`;
+
+                let tagClass = (sisa !== null && sisa <= 2 && sisa >= 0) ? "tag-urgent" : "tag-safe";
+                if (sisa < 0) tagClass = "bg-slate-200 text-slate-500";
 
                 container.innerHTML += `
                     <div class="bg-white/60 p-5 rounded-3xl border border-white backdrop-blur-sm shadow-sm ${isD ? 'tugas-done' : ''}">
-                        <div class="flex justify-between mb-3"><p class="text-[9px] font-bold text-indigo-500 uppercase">${item['Mata Kuliah']}</p>${tag}</div>
+                        <div class="flex justify-between items-center mb-3">
+                            <p class="text-[9px] font-bold text-indigo-500 uppercase">${item['Mata Kuliah']}</p>
+                            <span class="countdown-tag ${tagClass}">${tagText}</span>
+                        </div>
                         <div class="flex gap-3">
                             <input type="checkbox" ${isD ? 'checked' : ''} onchange="toggleTugas(this, '${idT}', ${index})" class="mt-1 w-4 h-4 rounded text-indigo-600">
                             <h3 class="font-bold text-slate-800 text-sm flex-1">${item['Tugas']}</h3>
                         </div>
-                        <p class="text-[10px] text-slate-400 font-bold mt-3 ml-7 uppercase">DL: ${item['Deadline']}</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-4 ml-7 uppercase tracking-wider">Deadline: ${item['Deadline']}</p>
                     </div>`;
             });
-            if(mndsk > 0) { alertBox.style.display = 'flex'; document.getElementById('alert-text').innerText = `Ada ${mndsk} tugas mndesk! Semangat!`; }
+            if(mndsk > 0) { alertBox.style.display = 'flex'; document.getElementById('alert-text').innerText = `Ada ${mndsk} tugas mendesak! Ayo kerjakan!`; }
             else { alertBox.style.display = 'none'; }
         }
 
-        function hitungSisaHari(d) { try { const dl = new Date(d); const ni = new Date(); ni.setHours(0,0,0,0); return Math.ceil((dl - ni)/(1000*60*60*24)); } catch(e){return null;} }
+        function hitungSisaHari(d) { 
+            if(!d) return null;
+            try { 
+                const dl = new Date(d); 
+                if(isNaN(dl.getTime())) return null; // Jika format tanggal di Sheet salah
+                const ni = new Date(); 
+                ni.setHours(0,0,0,0); 
+                const selisih = Math.ceil((dl - ni)/(1000*60*60*24));
+                return selisih;
+            } catch(e){ return null; } 
+        }
         
         async function kirimTugas() {
             const btn = document.getElementById('btn-kirim');
@@ -203,7 +221,7 @@
 
             try {
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ mataKuliah: mk, tugas: t, deadline: dl }) });
-                const msg = encodeURIComponent(`*TUGAS BARU (PSI-4C)*\n\n📖 MK: ${mk}\n📌 Tugas: ${t}\n⏰ DL: ${dl}\n\nCek: ${window.location.href}`);
+                const msg = encodeURIComponent(`*TUGAS BARU (PSI-4C)*\n\n📖 MK: ${mk}\n📌 Tugas: ${t}\n⏰ DL: ${dl}\n\nCek Jadwal: ${window.location.href}`);
                 if(confirm("Tugas terkirim! Share ke grup WA?")) window.open(`https://wa.me/?text=${msg}`);
                 setTimeout(() => location.reload(), 2000);
             } catch (e) { alert("Gagal!"); btn.innerText = "Kirim"; btn.disabled = false; }
@@ -214,10 +232,10 @@
             const icon = document.getElementById('eye-icon');
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.innerText = '🙈'; // Ikon saat terlihat
+                icon.innerText = '🙈';
             } else {
                 input.type = 'password';
-                icon.innerText = '👁️'; // Ikon saat tersembunyi
+                icon.innerText = '👁️';
             }
         }
 
