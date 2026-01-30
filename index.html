@@ -6,6 +6,7 @@
     <title>Asisten PSI-4C | Smart Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #5c67f2; --glass: rgba(255, 255, 255, 0.75); }
@@ -23,11 +24,17 @@
         
         .text-glow { color: var(--primary); text-shadow: 0 0 12px rgba(92, 103, 242, 0.5); font-weight: 800; animation: pulse-glow 2s infinite; }
         @keyframes pulse-glow { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        
+        /* Garis Tipis Pembatas Sesuai Request */
         .border-samar { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
 
-        /* Style untuk Tugas yang Selesai */
-        .tugas-done { opacity: 0.5; filter: grayscale(0.8); }
+        /* Style Tugas Selesai */
+        .tugas-done { opacity: 0.5; filter: grayscale(0.8); transform: scale(0.98); }
         .tugas-done h3 { text-decoration: line-through; color: #94a3b8; }
+
+        .countdown-tag { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+        .tag-urgent { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
+        .tag-safe { background: #f0fdf4; color: #22c55e; border: 1px solid #dcfce7; }
 
         .btn-music { position: fixed; bottom: 24px; right: 24px; z-index: 100; background: white; padding: 12px; border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; border: none; }
     </style>
@@ -40,9 +47,7 @@
         <div class="cloud" style="width: 350px; height: 150px; top: 75%; animation-duration: 50s; opacity: 0.4;"></div>
     </div>
 
-    <audio id="bgm" loop>
-        <source src="https://www.youtube.com/watch?v=CDHTiOJu0xU" type="audio/mpeg">
-    </audio>
+    <audio id="bgm" loop><source src="https://www.youtube.com/watch?v=CDHTiOJu0xU" type="audio/mpeg"></audio>
     <button onclick="toggleMusic()" id="musicBtn" class="btn-music">🔈</button>
 
     <header>
@@ -58,7 +63,6 @@
                     <span class="text-xl">📝</span>
                     <h2 class="font-bold text-slate-800 tracking-wide uppercase text-sm">Tugas PJ Terbaru</h2>
                 </div>
-                <span class="text-[10px] bg-white/50 px-3 py-1 rounded-full font-bold text-slate-400">PERSONAL PROGRESS</span>
             </div>
             <div id="tugas-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <p class="text-slate-400 text-xs animate-pulse">Menghubungkan ke database...</p>
@@ -84,131 +88,4 @@
                 <button onclick="prosesLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Masuk</button>
                 <button onclick="toggleAdmin()" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">Batal</button>
             </div>
-
-            <div id="input-section" class="p-8 hidden">
-                <h3 class="font-bold text-lg mb-6 text-indigo-700">Input Tugas Baru</h3>
-                <div class="space-y-4">
-                    <select id="in-mk" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500">
-                        <option>Psikologi Islam</option><option>Psikologi Konsumen</option><option>Asesmen Kepribadian I</option>
-                        <option>Psikologi Belajar</option><option>Falsafah Kesatuan Ilmu</option><option>Desain dan Teknik Pelatihan</option>
-                        <option>Metodologi Penelitian Kuantitatif</option><option>Al Quran dan Hadits Tematik</option><option>Konstruksi Alat Ukur Psikologi</option>
-                        <option>Psikologi Kepemimpinan</option><option>Psikologi Kesehatan</option>
-                    </select>
-                    <input type="text" id="in-tugas" placeholder="Detail Tugas" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
-                    <input type="text" id="in-dl" placeholder="Deadline (Contoh: 25 Jan)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
-                    <button onclick="kirimTugas()" id="btn-kirim" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Kirim ke Database</button>
-                    <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-6 uppercase tracking-widest">Logout</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
-        const CSV_TUGAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=53529564&single=true&output=csv';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6wSMyP7qBdkrTxk_Rdcd6RU-s6Dxrb1NpkdWfNgRztT_Uvh-mx2NQjBMWFmU40Okd/exec';
-        const KUNCI_VALID = ["PJKELAS4C", "PJ_PSIKOLOGI", "ADMIN4C", "DOSEN_PSI"];
-
-        function muatData() {
-            const proxy = 'https://api.allorigins.win/raw?url=';
-            Papa.parse(proxy + encodeURIComponent(CSV_JADWAL), { download: true, header: true, complete: res => tampilkanJadwal(res.data) });
-            Papa.parse(proxy + encodeURIComponent(CSV_TUGAS), { download: true, header: true, complete: res => tampilkanTugas(res.data) });
-        }
-
-        function toggleMusic() {
-            const audio = document.getElementById('bgm');
-            const btn = document.getElementById('musicBtn');
-            if (audio.paused) { audio.play(); btn.innerText = '🔊'; } 
-            else { audio.pause(); btn.innerText = '🔈'; }
-        }
-
-        function tampilkanJadwal(data) {
-            const container = document.getElementById('jadwal-grid');
-            container.innerHTML = '';
-            const grupHari = data.reduce((acc, item) => {
-                if(item['Mata Kuliah'] && item['Hari']) {
-                    if (!acc[item.Hari]) acc[item.Hari] = [];
-                    acc[item.Hari].push(item);
-                }
-                return acc;
-            }, {});
-
-            ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"].forEach(hari => {
-                if(grupHari[hari]) {
-                    let isiHTML = '';
-                    grupHari[hari].forEach((j, index) => {
-                        const stylePembatas = index !== grupHari[hari].length - 1 ? 'border-samar pb-5 mb-5' : '';
-                        isiHTML += `
-                            <div class="${stylePembatas} flex justify-between items-start">
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-sm leading-tight ${cekWaktuAktif(j.Jam, hari) ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
-                                    <p class="text-[10px] text-slate-400 mt-2 leading-relaxed font-medium uppercase">${j.Dosen}</p>
-                                </div>
-                                <div class="text-right ml-4">
-                                    <span class="text-[10px] font-black text-indigo-500 block">${j.Jam}</span>
-                                    <span class="inline-block mt-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">${j.Ruang}</span>
-                                </div>
-                            </div>`;
-                    });
-                    container.innerHTML += `<div class="card-hari"><div class="mb-6"><span class="bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest">${hari}</span></div><div class="flex flex-col justify-around flex-1">${isiHTML}</div></div>`;
-                }
-            });
-        }
-
-        function tampilkanTugas(data) {
-            const container = document.getElementById('tugas-list');
-            container.innerHTML = '';
-            const statusSimpanan = JSON.parse(localStorage.getItem('tugasSelesai') || '{}');
-
-            data.forEach((item, index) => {
-                if(!item['Tugas']) return;
-                const idTugas = item['Tugas'].replace(/\s/g, ''); // Buat ID unik sederhana
-                const isDone = statusSimpanan[idTugas] || false;
-
-                container.innerHTML += `
-                    <div id="card-tugas-${index}" class="bg-white/60 border border-white p-5 rounded-3xl backdrop-blur-sm shadow-sm relative transition-all duration-300 ${isDone ? 'tugas-done' : ''}">
-                        <div class="flex justify-between items-start mb-2">
-                            <p class="text-[9px] font-bold text-indigo-500 uppercase">${item['Mata Kuliah']}</p>
-                            <input type="checkbox" ${isDone ? 'checked' : ''} 
-                                   onchange="toggleTugas(this, '${idTugas}', ${index})" 
-                                   class="w-4 h-4 rounded-lg border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-sm leading-snug">${item['Tugas']}</h3>
-                        <div class="mt-4 flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 bg-red-500 rounded-full ${isDone ? '' : 'animate-pulse'}"></span>
-                            <p class="text-[10px] text-red-500 font-bold italic">DL: ${item['Deadline']}</p>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function toggleTugas(el, idTugas, index) {
-            const statusSimpanan = JSON.parse(localStorage.getItem('tugasSelesai') || '{}');
-            statusSimpanan[idTugas] = el.checked;
-            localStorage.setItem('tugasSelesai', JSON.stringify(statusSimpanan));
-            
-            const card = document.getElementById(`card-tugas-${index}`);
-            if(el.checked) card.classList.add('tugas-done');
-            else card.classList.remove('tugas-done');
-        }
-
-        function cekWaktuAktif(jamString, hariMatkul) {
-            const d = new Date();
-            const hariSekarang = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d);
-            if (hariMatkul.toLowerCase() !== hariSekarang.toLowerCase()) return false;
-            try {
-                const jamSekarang = d.getHours() + (d.getMinutes() / 60);
-                const jamAwalString = jamString.split('-')[0].trim().replace('.', ':');
-                const [h, m] = jamAwalString.split(':').map(Number);
-                return (jamSekarang >= (h + m/60 - 0.5) && jamSekarang <= (h + m/60 + 1.5));
-            } catch (e) { return false; }
-        }
-
-        function prosesLogin() { if(KUNCI_VALID.includes(document.getElementById('admin-key').value)) { document.getElementById('login-section').classList.add('hidden'); document.getElementById('input-section').classList.remove('hidden'); } else { alert("Kunci Salah!"); } }
-        async function kirimTugas() { /* Fungsi kirim tetap sama */ }
-        function toggleAdmin() { document.getElementById('modal-admin').classList.toggle('hidden'); }
-        function logout() { location.reload(); }
-        window.onload = muatData;
-    </script>
-</body>
-</html>
+            <div id="input-section"
