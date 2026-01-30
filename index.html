@@ -25,9 +25,6 @@
         .tugas-done h3 { text-decoration: line-through; }
 
         .btn-music { position: fixed; bottom: 24px; right: 24px; z-index: 100; background: white; width: 50px; height: 50px; border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        
-        /* Custom Border Samar */
-        .border-samar { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
     </style>
 </head>
 <body>
@@ -53,7 +50,7 @@
                     <span class="text-xl">📝</span>
                     <h2 class="font-bold text-slate-800 tracking-wide uppercase text-sm">Daftar Tugas</h2>
                 </div>
-                <span class="text-[9px] bg-white/50 px-3 py-1 rounded-full font-bold text-slate-400 italic">Progress Lokal</span>
+                <span class="text-[9px] bg-white/50 px-3 py-1 rounded-full font-bold text-slate-400 italic">Progress Lokal (LocalStorage)</span>
             </div>
             <div id="tugas-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <p class="text-slate-400 text-xs animate-pulse">Memuat tugas...</p>
@@ -72,7 +69,193 @@
     </main>
 
     <div id="modal-admin" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden flex items-center justify-center p-4 z-[1000]">
-        <div class="bg-white rounded-3xl w-full max-md overflow-hidden shadow-2xl">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
             <div id="login-section" class="p-8">
                 <h3 class="font-bold text-xl mb-6 text-center text-slate-800">Login PJ Matkul</h3>
-                <input type="password" id="admin-key" placeholder="Kunci Akses" class="w-full bg-slate-50 border-0 p-4 rounded-
+                <input type="password" id="admin-key" placeholder="Kunci Akses" class="w-full bg-slate-50 border-0 p-4 rounded-2xl mb-4 focus:ring-2 focus:ring-indigo-500 text-center font-bold outline-none">
+                <button onclick="prosesLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Masuk</button>
+                <button onclick="toggleAdmin()" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">Batal</button>
+            </div>
+
+            <div id="input-section" class="p-8 hidden">
+                <h3 class="font-bold text-lg mb-6 text-indigo-700">Input & Kelola Tugas</h3>
+                <div class="space-y-4">
+                    <select id="in-mk" class="w-full bg-slate-50 p-4 rounded-2xl text-sm outline-none">
+                        <option>Psikologi Islam</option><option>Psikologi Konsumen</option><option>Asesmen Kepribadian I</option>
+                        <option>Psikologi Belajar</option><option>Falsafah Kesatuan Ilmu</option><option>Desain & Teknik Pelatihan</option>
+                        <option>Metode Penelitian Kuantitatif</option><option>Al Quran Hadits Tematik</option><option>Konstruksi Alat Ukur</option>
+                        <option>Psikologi Kepemimpinan</option><option>Psikologi Kesehatan</option>
+                    </select>
+                    <input type="text" id="in-tugas" placeholder="Detail Tugas" class="w-full bg-slate-50 p-4 rounded-2xl text-sm outline-none">
+                    <input type="text" id="in-dl" placeholder="Deadline (Contoh: 30 Jan)" class="w-full bg-slate-50 p-4 rounded-2xl text-sm outline-none">
+                    <input type="text" id="in-file" placeholder="Link File/Foto (Opsional)" class="w-full bg-slate-50 p-4 rounded-2xl text-sm outline-none">
+                    
+                    <button onclick="kirimTugas()" id="btn-kirim" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition">Kirim ke Database</button>
+                    <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-4 uppercase tracking-widest">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
+        const CSV_TUGAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=53529564&single=true&output=csv';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6wSMyP7qBdkrTxk_Rdcd6RU-s6Dxrb1NpkdWfNgRztT_Uvh-mx2NQjBMWFmU40Okd/exec';
+        const KUNCI_VALID = ["PJKELAS4C", "PJ_PSIKOLOGI", "ADMIN4C", "DOSEN_PSI"];
+
+        // --- MUSIC ENGINE ---
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube-nocookie.com/iframe_api";
+        document.head.appendChild(tag);
+        var player; var isPlaying = false;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '0', width: '0', videoId: 'CDHTiOJu0xU',
+                playerVars: { 'loop': 1, 'playlist': 'CDHTiOJu0xU', 'origin': window.location.origin },
+                events: { 'onReady': () => console.log("Audio Ready") }
+            });
+        }
+        function toggleMusic() {
+            const btn = document.getElementById('musicBtn');
+            if(!isPlaying) { player.playVideo(); btn.innerText = '🔊'; isPlaying = true; }
+            else { player.pauseVideo(); btn.innerText = '🔈'; isPlaying = false; }
+        }
+
+        // --- CORE DATA ---
+        function muatData() {
+            const proxy = 'https://api.allorigins.win/raw?url=';
+            Papa.parse(proxy + encodeURIComponent(CSV_JADWAL), { download: true, header: true, complete: res => tampilkanJadwal(res.data) });
+            Papa.parse(proxy + encodeURIComponent(CSV_TUGAS), { download: true, header: true, complete: res => tampilkanTugas(res.data) });
+        }
+
+        function tampilkanJadwal(data) {
+            const container = document.getElementById('jadwal-grid');
+            container.innerHTML = '';
+            const grupHari = data.reduce((acc, item) => {
+                if(item['Mata Kuliah'] && item['Hari']) {
+                    if (!acc[item.Hari]) acc[item.Hari] = [];
+                    acc[item.Hari].push(item);
+                }
+                return acc;
+            }, {});
+
+            ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].forEach(hari => {
+                if(grupHari[hari]) {
+                    let isiHTML = '';
+                    grupHari[hari].forEach((j, index) => {
+                        const isAktif = cekWaktuAktif(j.Jam, hari);
+                        const classGlow = isAktif ? 'text-glow' : 'text-slate-800';
+                        const border = index !== grupHari[hari].length - 1 ? 'border-b border-slate-100 pb-5 mb-5' : '';
+                        const daftarDosen = j.Dosen.split(',').map(d => d.trim()).join('<br>');
+                        
+                        isiHTML += `
+                            <div class="${border} flex justify-between items-start gap-4">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-sm leading-tight ${classGlow}">${j['Mata Kuliah']}</h3>
+                                    <p class="text-[10px] text-slate-500 mt-2 font-medium leading-relaxed uppercase">${daftarDosen}</p>
+                                </div>
+                                <div class="flex flex-col items-center min-w-[95px] bg-white/40 p-2 rounded-xl border border-white/50 shadow-sm">
+                                    <span class="text-[10px] font-black text-indigo-600 mb-1 tracking-tighter">${j.Jam}</span>
+                                    <div class="w-full h-[1px] bg-indigo-100 mb-1"></div>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">${j.Ruang}</span>
+                                </div>
+                            </div>`;
+                    });
+                    container.innerHTML += `
+                        <div class="card-hari">
+                            <span class="inline-block bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-full mb-6 uppercase tracking-widest">${hari}</span>
+                            <div>${isiHTML}</div>
+                        </div>`;
+                }
+            });
+        }
+
+        function tampilkanTugas(data) {
+            const container = document.getElementById('tugas-list');
+            container.innerHTML = '';
+            const doneList = JSON.parse(localStorage.getItem('tugasSelesai') || '[]');
+            const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+
+            data.forEach((item, index) => {
+                if(!item['Tugas']) return;
+                const isDone = doneList.includes(item.Timestamp);
+                const fileBtn = item.File_Link ? `<a href="${item.File_Link}" target="_blank" class="text-[9px] bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold">📂 LIHAT FILE</a>` : '';
+                const hapusBtn = isAdmin ? `<button onclick="hapusTugas('${item.Timestamp}')" class="text-[9px] text-red-400 font-bold ml-auto hover:text-red-600">HAPUS 🗑️</button>` : '';
+
+                container.innerHTML += `
+                    <div id="tugas-${index}" class="bg-white/70 border border-white p-6 rounded-3xl shadow-sm relative transition-all duration-300 ${isDone ? 'tugas-done' : ''}">
+                        <div class="flex justify-between items-start mb-3">
+                            <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-wider">${item['Mata Kuliah']}</p>
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onclick="toggleDone('${item.Timestamp}', ${index})" class="w-4 h-4 rounded cursor-pointer">
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-sm leading-snug">${item['Tugas']}</h3>
+                        <p class="text-[10px] text-red-500 font-bold mt-4 italic">DL: ${item['Deadline']}</p>
+                        <div class="mt-4 flex items-center gap-3 border-t pt-4 border-white/50">
+                            ${fileBtn} ${hapusBtn}
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // --- FEATURES ---
+        function toggleDone(id, idx) {
+            let doneList = JSON.parse(localStorage.getItem('tugasSelesai') || '[]');
+            if(doneList.includes(id)) { doneList = doneList.filter(i => i !== id); }
+            else { doneList.push(id); }
+            localStorage.setItem('tugasSelesai', JSON.stringify(doneList));
+            document.getElementById(`tugas-${idx}`).classList.toggle('tugas-done');
+        }
+
+        function cekWaktuAktif(jamString, hariMatkul) {
+            const d = new Date(); const hariSekarang = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d);
+            if (hariMatkul.toLowerCase() !== hariSekarang.toLowerCase()) return false;
+            try {
+                const jamSekarang = d.getHours() + (d.getMinutes() / 60);
+                const jamAwal = jamString.split('-')[0].trim().replace('.', ':');
+                const [h, m] = jamAwal.split(':').map(Number);
+                const jamMatkul = h + (m / 60);
+                return (jamSekarang >= (jamMatkul - 0.5) && jamSekarang <= (jamMatkul + 1.5));
+            } catch { return false; }
+        }
+
+        function prosesLogin() {
+            if(KUNCI_VALID.includes(document.getElementById('admin-key').value)) {
+                sessionStorage.setItem('isAdmin', 'true');
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('input-section').classList.remove('hidden');
+                muatData();
+            } else { alert("Kunci Salah!"); }
+        }
+
+        async function kirimTugas() {
+            const btn = document.getElementById('btn-kirim');
+            const data = {
+                action: 'add',
+                key: document.getElementById('admin-key').value,
+                matkul: document.getElementById('in-mk').value,
+                tugas: document.getElementById('in-tugas').value,
+                deadline: document.getElementById('in-dl').value,
+                file: document.getElementById('in-file').value
+            };
+            btn.innerText = "Mengirim..."; btn.disabled = true;
+            try {
+                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+                location.reload();
+            } catch { alert("Gagal!"); btn.innerText = "Kirim ke Database"; btn.disabled = false; }
+        }
+
+        async function hapusTugas(timestamp) {
+            if(!confirm("Yakin ingin menghapus tugas ini secara permanen dari database?")) return;
+            const data = { action: 'delete', timestamp: timestamp, key: document.getElementById('admin-key').value };
+            try {
+                await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+                alert("Data Terhapus!"); location.reload();
+            } catch { alert("Gagal menghapus."); }
+        }
+
+        function toggleAdmin() { document.getElementById('modal-admin').classList.toggle('hidden'); }
+        function logout() { sessionStorage.clear(); location.reload(); }
+        window.onload = muatData;
+    </script>
+</body>
+</html>
