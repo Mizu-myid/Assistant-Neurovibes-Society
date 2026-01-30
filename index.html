@@ -118,3 +118,80 @@
 <body>
 
     <div class="cloud-container">
+        <div class="cloud" style="width: 400px; height: 180px; top: 10%; animation-duration: 70s;"></div>
+        <div class="cloud" style="width: 600px; height: 250px; top: 35%; animation-duration: 120s; opacity: 0.3;"></div>
+        <div class="cloud" style="width: 350px; height: 150px; top: 75%; animation-duration: 50s; opacity: 0.4;"></div>
+    </div>
+
+    <audio id="bgm" loop>
+        <source src="https://www.youtube.com/watch?v=CDHTiOJu0xU" type="audio/mpeg">
+    </audio>
+    <button onclick="toggleMusic()" id="musicBtn" class="btn-music">🔈</button>
+
+    <header>
+        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight uppercase">PSI-4C Smart Assistant</h1>
+        <p class="text-sm text-slate-600 mt-2 font-medium opacity-80">UIN Walisongo Semarang</p>
+        <button onclick="toggleAdmin()" class="absolute right-6 top-6 bg-slate-800/10 p-2.5 rounded-full hover:bg-slate-800/20 transition">
+            ⚙️
+        </button>
+    </header>
+
+    <main class="p-6 max-w-7xl mx-auto space-y-12">
+        <section>
+            <div class="flex items-center gap-3 mb-6">
+                <span class="text-xl">📝</span>
+                <h2 class="font-bold text-slate-800 tracking-wide uppercase text-sm">Tugas PJ Terbaru</h2>
+            </div>
+            <div id="tugas-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <p class="text-slate-400 text-xs animate-pulse">Menghubungkan ke database...</p>
+            </div>
+        </section>
+
+        <section>
+            <div class="flex items-center gap-3 mb-6">
+                <span class="text-xl">📅</span>
+                <h2 class="font-bold text-slate-800 tracking-wide uppercase text-sm">Jadwal Kuliah Mingguan</h2>
+            </div>
+            <div id="jadwal-grid">
+                <p class="text-slate-400 text-xs animate-pulse">Menyusun jadwal...</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="modal-admin" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden flex items-center justify-center p-4 z-[1000]">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div id="login-section" class="p-8">
+                <h3 class="font-bold text-xl mb-6 text-center text-slate-800">Login PJ Matkul</h3>
+                <input type="password" id="admin-key" placeholder="Masukkan Kunci Akses" class="w-full bg-slate-50 border-0 p-4 rounded-2xl mb-4 focus:ring-2 focus:ring-indigo-500 outline-none text-center font-bold">
+                <button onclick="prosesLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Masuk</button>
+                <button onclick="toggleAdmin()" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">Batal</button>
+            </div>
+
+            <div id="input-section" class="p-8 hidden">
+                <h3 class="font-bold text-lg mb-6 text-indigo-700">Input Tugas Baru</h3>
+                <div class="space-y-4">
+                    <select id="in-mk" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500">
+                        <option>Psikologi Islam</option>
+                        <option>Psikologi Konsumen</option>
+                        <option>Asesmen Kepribadian I</option>
+                        <option>Psikologi Belajar</option>
+                        <option>Falsafah Kesatuan Ilmu</option>
+                        <option>Desain dan Teknik Pelatihan</option>
+                        <option>Metodologi Penelitian Kuantitatif</option>
+                        <option>Al Quran dan Hadits Tematik</option>
+                        <option>Konstruksi Alat Ukur Psikologi</option>
+                        <option>Psikologi Kepemimpinan</option>
+                        <option>Psikologi Kesehatan</option>
+                    </select>
+                    <input type="text" id="in-tugas" placeholder="Detail Tugas" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
+                    <input type="text" id="in-dl" placeholder="Deadline (Contoh: 25 Jan)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
+                    <button onclick="kirimTugas()" id="btn-kirim" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Kirim ke Database</button>
+                    <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-6 uppercase tracking-widest">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
+        const CSV_TUGAS = '
