@@ -21,6 +21,9 @@
         #jadwal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; align-items: stretch; }
         .card-hari { background: var(--glass); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 28px; padding: 24px; display: flex; flex-direction: column; justify-content: start; box-shadow: 0 10px 25px rgba(0,0,0,0.03); transition: all 0.4s ease; min-height: 280px; }
         
+        /* Box Border Informasi Jam & Ruang */
+        .info-box { border: 1px solid rgba(92, 103, 242, 0.2); background: rgba(255, 255, 255, 0.4); border-radius: 10px; padding: 4px 10px; min-width: 85px; text-align: center; }
+
         .text-glow { color: var(--primary); text-shadow: 0 0 12px rgba(92, 103, 242, 0.5); font-weight: 800; animation: pulse-glow 2s infinite; }
         @keyframes pulse-glow { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
@@ -32,7 +35,7 @@
         .tag-urgent { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
         .tag-safe { background: #f0fdf4; color: #22c55e; border: 1px solid #dcfce7; }
 
-        .btn-music { position: fixed; bottom: 24px; right: 24px; z-index: 100; background: white; padding: 12px; border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: none; }
+        .btn-music { position: fixed; bottom: 24px; right: 24px; z-index: 100; background: white; padding: 12px; border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -84,18 +87,28 @@
             </div>
             <div id="input-section" class="hidden space-y-4">
                 <h3 class="font-bold text-lg text-indigo-700">Input Tugas Baru</h3>
-                <select id="in-mk" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm"><option>Psikologi Islam</option><option>Psikologi Konsumen</option><option>Asesmen Kepribadian I</option><option>Psikologi Belajar</option><option>Falsafah Kesatuan Ilmu</option><option>Desain dan Teknik Pelatihan</option><option>Metodologi Penelitian Kuantitatif</option><option>Al Quran dan Hadits Tematik</option><option>Konstruksi Alat Ukur Psikologi</option><option>Psikologi Kepemimpinan</option><option>Psikologi Kesehatan</option></select>
+                <select id="in-mk" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
+                    <option>Psikologi Islam</option><option>Psikologi Konsumen</option><option>Asesmen Kepribadian I</option>
+                    <option>Psikologi Belajar</option><option>Falsafah Kesatuan Ilmu</option><option>Desain dan Teknik Pelatihan</option>
+                    <option>Metodologi Penelitian Kuantitatif</option><option>Al Quran dan Hadits Tematik</option><option>Konstruksi Alat Ukur Psikologi</option>
+                    <option>Psikologi Kepemimpinan</option><option>Psikologi Kesehatan</option>
+                </select>
                 <input type="text" id="in-tugas" placeholder="Detail Tugas" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
                 <input type="text" id="in-dl" placeholder="Deadline (Contoh: Jan 30, 2026)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm">
-                <button onclick="kirimTugas()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Kirim ke Database</button>
+                <button id="btn-kirim" onclick="kirimTugas()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Kirim ke Database</button>
                 <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-4 uppercase tracking-widest text-center">Logout</button>
             </div>
         </div>
     </div>
 
     <script>
+        // --- KONFIGURASI ---
         const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
         const CSV_TUGAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=53529564&single=true&output=csv';
+        
+        // TEMPELKAN URL WEB APP ANDA DI SINI
+        const APPS_SCRIPT_URL = 'PASTE_URL_WEB_APP_ANDA_DISINI'; 
+        
         const KUNCI_VALID = ["PJKELAS4C", "PJ_PSIKOLOGI", "ADMIN4C"];
 
         function muatData() {
@@ -162,25 +175,59 @@
                     grupHari[hari].forEach((j, index) => {
                         const stylePembatas = index !== grupHari[hari].length - 1 ? 'border-samar pb-5 mb-5' : '';
                         const isAktif = cekWaktuAktif(j.Jam, hari);
-                        
-                        // LOGIKA BARU: Jika nama dosen ada koma, ganti jadi enter (<br>)
                         const namaDosenClean = j.Dosen.replace(/,/g, '<br>');
 
                         isiHTML += `
-                            <div class="${stylePembatas} flex justify-between items-start">
-                                <div class="flex-1">
+                            <div class="${stylePembatas} flex justify-between items-center">
+                                <div class="flex-1 pr-4">
                                     <h3 class="font-bold text-sm leading-tight ${isAktif ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
                                     <p class="text-[10px] text-slate-400 mt-2 font-medium uppercase leading-relaxed">${namaDosenClean}</p>
                                 </div>
-                                <div class="text-right ml-4">
-                                    <span class="text-[10px] font-black text-indigo-500 block">${j.Jam}</span>
-                                    <span class="inline-block mt-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">${j.Ruang}</span>
+                                <div class="info-box flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-indigo-600 block">${j.Jam}</span>
+                                    <div class="h-[1px] bg-indigo-100 w-full"></div>
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">${j.Ruang}</span>
                                 </div>
                             </div>`;
                     });
                     container.innerHTML += `<div class="card-hari"><div class="mb-6"><span class="bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest">${hari}</span></div><div class="flex flex-col">${isiHTML}</div></div>`;
                 }
             });
+        }
+
+        async function kirimTugas() {
+            const btn = document.getElementById('btn-kirim');
+            const data = {
+                mataKuliah: document.getElementById('in-mk').value,
+                tugas: document.getElementById('in-tugas').value,
+                deadline: document.getElementById('in-dl').value
+            };
+
+            if(!data.tugas || !data.deadline) return alert("Mohon isi semua data!");
+            if(APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzNaf7tREiHH-aKUux_Wg_TW6GvvUU5mnrmL4qY4yoIBrq0CuZqXyiHaQdPvIHHI0Pq/exec') return alert("URL Apps Script belum dipasang!");
+            
+            btn.innerText = "Mengirim...";
+            btn.disabled = true;
+
+            try {
+                // Menggunakan mode no-cors jika fetch biasa terhalang CORS, 
+                // tapi Apps Script POST biasanya membutuhkan handling khusus
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                alert("Tugas Berhasil Terkirim ke Database!");
+                location.reload();
+            } catch (error) {
+                alert("Gagal mengirim data: " + error.message);
+            } finally {
+                btn.innerText = "Kirim ke Database";
+                btn.disabled = false;
+            }
         }
 
         function toggleTugas(el, idTugas, index) {
