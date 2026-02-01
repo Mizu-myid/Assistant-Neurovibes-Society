@@ -21,8 +21,8 @@
         #jadwal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
         .card-hari { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 28px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
         
-        /* Box Waktu agar tetap simetris di kanan */
-        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; min-width: 105px; white-space: nowrap; gap: 4px; text-align: right; }
+        /* Box Waktu agar tetap simetris di kanan - DIUPGRADE */
+        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; min-width: 115px; white-space: nowrap; gap: 4px; text-align: right; }
         
         .text-glow { color: var(--primary); text-shadow: 0 0 12px rgba(92, 103, 242, 0.5); font-weight: 800; }
         .border-samar { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
@@ -154,18 +154,17 @@
                         const stylePembatas = index !== grupHari[hari].length - 1 ? 'border-samar pb-6 mb-6' : '';
                         const isAktif = cekWaktuAktif(j.Jam, hari);
                         
-                        // Perbaikan 1: Dosen menurun jika ada koma
                         let dosenFix = j.Dosen ? j.Dosen.replace(/,/g, '<br>') : '-';
                         let jamStart = j.Jam ? j.Jam.replace(/wib/gi, "").trim() : '00:00';
-                        let jamEnd = j['Jam Selesai'] || ''; // Penambahan Jam Selesai
-                        let sks = j['SKS'] || ''; // Penambahan SKS
+                        let jamEnd = j['Jam Selesai'] || ''; 
+                        let sks = j['SKS'] || ''; 
 
                         isiHTML += `
                             <div class="${stylePembatas} flex justify-between items-start gap-4">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <h3 class="font-bold text-sm leading-tight ${isAktif ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
-                                        ${sks ? `<span class="text-[8px] bg-slate-200 px-1.5 py-0.5 rounded font-bold">${sks} SKS</span>` : ''}
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center flex-nowrap gap-2 mb-1">
+                                        <h3 class="font-bold text-sm leading-tight whitespace-nowrap ${isAktif ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
+                                        ${sks ? `<span class="text-[8px] bg-slate-200 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${sks} SKS</span>` : ''}
                                     </div>
                                     <p class="text-[10px] text-slate-400 font-medium leading-relaxed">${dosenFix}</p>
                                 </div>
@@ -194,12 +193,11 @@
                 const sisa = hitungSisaHari(item['Deadline']);
                 const linkFile = item['Link File'] || ''; 
                 
-                // Perbaikan 2: Lokasi Output Sesuai Kolom
-                const lokasi = item['Lokasi Pengumpulan'] || item['Lokasi'] || '-';
+                // PERBAIKAN LOGIKA LOKASI: Memastikan membaca kolom yang benar dari spreadsheet
+                const lokasi = item['Lokasi Pengumpulan'] || item['Lokasi'] || item['lokasi'] || '-';
                 
                 if (!isD && sisa !== null && sisa <= 2 && sisa >= 0) mndsk++;
 
-                // Perbaikan 3: Tag Interaktif (Bisa diklik)
                 let tagText = sisa === null ? "Cek Deadline" : (sisa < 0 ? "Selesai" : `${sisa} Hari Lagi`);
                 let tagClass = (sisa !== null && sisa <= 2 && sisa >= 0) ? "tag-urgent" : (sisa < 0 ? "bg-slate-200 text-slate-500" : "tag-safe");
 
