@@ -21,8 +21,8 @@
         #jadwal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
         .card-hari { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 28px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
         
-        /* Box Waktu agar tetap simetris di kanan - RATA KANAN SESUAI PERMINTAAN */
-        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; min-width: 105px; white-space: nowrap; gap: 4px; text-align: right; }
+        /* Box Waktu & Lokasi Rata Kanan Sempurna */
+        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; min-width: 120px; text-align: right; }
         
         .text-glow { color: var(--primary); text-shadow: 0 0 12px rgba(92, 103, 242, 0.5); font-weight: 800; }
         .border-samar { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
@@ -30,16 +30,13 @@
         .tugas-done h3 { text-decoration: line-through; }
 
         .countdown-tag { font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-        .countdown-tag:hover { transform: scale(1.05); filter: brightness(0.9); }
         .tag-urgent { background: #fee2e2; color: #ef4444; }
         .tag-safe { background: #f0fdf4; color: #22c55e; }
 
         .btn-music { position: fixed; bottom: 24px; right: 24px; z-index: 100; background: white; padding: 12px; border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; border:none; }
         #smart-alert { display: none; background: #312e81; color: white; padding: 12px 20px; border-radius: 20px; font-size: 12px; margin-bottom: 20px; }
         
-        input[type="file"]::file-selector-button { background: #5c67f2; color: white; border: none; padding: 8px 16px; border-radius: 12px; font-size: 10px; cursor: pointer; margin-right: 10px; }
-        
-        .box-lokasi { background: rgba(92, 103, 242, 0.08); border: 1px dashed rgba(92, 103, 242, 0.3); border-radius: 12px; padding: 8px; margin-top: 10px; }
+        .box-lokasi-tugas { background: rgba(92, 103, 242, 0.08); border: 1px dashed rgba(92, 103, 242, 0.3); border-radius: 12px; padding: 8px; margin-top: 10px; }
         .admin-btn { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; margin-top: 8px; transition: all 0.2s; }
     </style>
 </head>
@@ -120,7 +117,7 @@
                     <input type="file" id="in-file" class="text-xs w-full">
                 </div>
 
-                <button id="btn-kirim" onclick="handleKirim()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Kirim ke Database</button>
+                <button id="btn-kirim" onclick="handleKirim()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Kirim & Share WA</button>
                 <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-4 uppercase tracking-widest text-center">Logout</button>
             </div>
         </div>
@@ -129,7 +126,7 @@
     <script>
         const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
         const CSV_TUGAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=53529564&single=true&output=csv';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNaf7tREiHH-aKUux_Wg_TW6GvvUU5mnrmL4qY4yoIBrq0CuZqXyiHaQdPvIHHI0Pq/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKkjoc4nu4Fu8wS3MaL6KYFE2y343sgBEjFlyRzIQnXQUZA9oL9h-EfAWOagMv0udY/exec'; 
         const KUNCI_VALID = ["PJKELAS4C", "PJ_PSIKOLOGI", "ADMIN4C"];
         let is_admin = false;
 
@@ -138,6 +135,18 @@
             const proxy = 'https://api.allorigins.win/raw?url=';
             Papa.parse(proxy + encodeURIComponent(CSV_JADWAL + cacheBuster), { download: true, header: true, complete: res => tampilkanJadwal(res.data) });
             Papa.parse(proxy + encodeURIComponent(CSV_TUGAS + cacheBuster), { download: true, header: true, complete: res => tampilkanTugas(res.data) });
+        }
+
+        // Fungsi Hitung Jam Selesai Berdasarkan SKS
+        function hitungJamSelesai(jamMulai, sks) {
+            if(!jamMulai || !sks) return "";
+            try {
+                let [jam, menit] = jamMulai.split(':').map(Number);
+                let totalMenit = (jam * 60) + menit + (parseInt(sks) * 50);
+                let jamAkhir = Math.floor(totalMenit / 60);
+                let menitAkhir = totalMenit % 60;
+                return `${jamAkhir.toString().padStart(2, '0')}:${menitAkhir.toString().padStart(2, '0')}`;
+            } catch(e) { return ""; }
         }
 
         function tampilkanJadwal(data) {
@@ -159,21 +168,21 @@
                         const isAktif = cekWaktuAktif(j.Jam, hari);
                         let dosenFix = j.Dosen ? j.Dosen.replace(/,/g, '<br>') : '-';
                         let jamStart = j.Jam ? j.Jam.replace(/wib/gi, "").trim() : '00:00';
-                        let jamEnd = j['Jam Selesai'] || ''; 
-                        let sks = j['SKS'] || ''; 
+                        let sksVal = j['SKS'] || '2';
+                        let jamEnd = j['Jam Selesai'] || hitungJamSelesai(jamStart, sksVal); 
 
                         isiHTML += `
                             <div class="${stylePembatas} flex justify-between items-start gap-4">
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center flex-nowrap gap-2 mb-1">
-                                        <h3 class="font-bold text-sm leading-tight whitespace-nowrap ${isAktif ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
-                                        ${sks ? `<span class="text-[8px] bg-slate-200 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${sks} SKS</span>` : ''}
+                                    <div class="flex items-center flex-wrap gap-2 mb-1">
+                                        <h3 class="font-bold text-sm leading-tight ${isAktif ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
+                                        <span class="text-[8px] bg-slate-200 px-1.5 py-0.5 rounded font-bold">${sksVal} SKS</span>
                                     </div>
                                     <p class="text-[10px] text-slate-400 font-medium leading-relaxed">${dosenFix}</p>
                                 </div>
                                 <div class="waktu-box">
-                                    <span class="text-[10px] font-bold text-indigo-600 tracking-wide">${jamStart}${jamEnd ? ' - ' + jamEnd : ''} WIB</span>
-                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter bg-slate-100 px-2 py-1 rounded">${j.Ruang}</span>
+                                    <span class="text-[10px] font-bold text-indigo-600 tracking-wide mb-1">${jamStart} - ${jamEnd} WIB</span>
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter bg-slate-100 px-2 py-1 rounded">📍 ${j.Ruang}</span>
                                 </div>
                             </div>`;
                     });
@@ -190,13 +199,16 @@
             let mndsk = 0;
 
             data.forEach((item, index) => {
-                if(!item['Tugas']) return;
-                const idT = item['Tugas'].replace(/\s/g, '');
+                // Pastikan key sesuai dengan header CSV Anda
+                const namaTugas = item['Tugas'] || item['tugas'];
+                if(!namaTugas) return;
+
+                const idT = namaTugas.replace(/\s/g, '');
                 const isD = statusSimpanan[idT] || false;
                 const sisa = hitungSisaHari(item['Deadline']);
-                const linkFile = item['Link File'] || ''; 
-                const lokasi = item['Lokasi Pengumpulan'] || item['Lokasi'] || '-';
-                const desc = item['Deskripsi'] || ''; 
+                const linkFile = item['Link File'] || item['fileUrl'] || ''; 
+                const lokasi = item['Lokasi Pengumpulan'] || item['lokasi'] || '-';
+                const desc = item['Deskripsi'] || item['deskripsi'] || ''; 
                 
                 if (!isD && sisa !== null && sisa <= 2 && sisa >= 0) mndsk++;
                 let tagText = sisa === null ? "Cek Deadline" : (sisa < 0 ? "Selesai" : `${sisa} Hari Lagi`);
@@ -205,24 +217,23 @@
                 container.innerHTML += `
                     <div class="bg-white/60 p-5 rounded-3xl border border-white backdrop-blur-sm shadow-sm ${isD ? 'tugas-done' : ''}">
                         <div class="flex justify-between items-center mb-3">
-                            <p class="text-[9px] font-bold text-indigo-500 uppercase">${item['Mata Kuliah']}</p>
+                            <p class="text-[9px] font-bold text-indigo-500 uppercase">${item['Mata Kuliah'] || item['mataKuliah']}</p>
                             <span onclick="cekInfoDeadline('${tagText}', '${item['Deadline']}')" class="countdown-tag ${tagClass}">${tagText}</span>
                         </div>
                         <div class="flex gap-3">
                             <input type="checkbox" ${isD ? 'checked' : ''} onchange="toggleTugas(this, '${idT}', ${index})" class="mt-1 w-4 h-4 rounded text-indigo-600">
                             <div class="flex-1">
-                                <h3 class="font-bold text-slate-800 text-sm">${item['Tugas']}</h3>
-                                ${desc ? `<p class="text-[10px] text-slate-500 mt-1 italic">${desc}</p>` : ''}
-                                <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">Deadline: ${item['Deadline']}</p>
-                                <div class="box-lokasi">
+                                <h3 class="font-bold text-slate-800 text-sm">${namaTugas}</h3>
+                                ${desc ? `<p class="text-[10px] text-slate-500 mt-1 italic line-clamp-2">${desc}</p>` : ''}
+                                <p class="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-wider">📅 Deadline: ${item['Deadline']}</p>
+                                <div class="box-lokasi-tugas">
                                     <p class="text-[8px] text-indigo-400 font-bold uppercase tracking-widest">Lokasi Pengumpulan:</p>
                                     <p class="text-[11px] text-slate-600 font-semibold italic">${lokasi}</p>
                                 </div>
                                 ${linkFile ? `<a href="${linkFile}" target="_blank" class="inline-block mt-3 text-[10px] bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold">📂 Lihat Lampiran</a>` : ''}
                                 ${is_admin ? `
-                                <div class="flex gap-2">
-                                    <button onclick="editTugas('${item['Tugas']}', '${item['Mata Kuliah']}', '${desc}', '${item['Deadline']}', '${lokasi}')" class="admin-btn bg-amber-100 text-amber-600">Edit</button>
-                                    <button onclick="hapusTugas('${item['Tugas']}')" class="admin-btn bg-red-100 text-red-600">Hapus</button>
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="hapusTugas('${namaTugas}')" class="admin-btn bg-red-100 text-red-600">Hapus</button>
                                 </div>` : ''}
                             </div>
                         </div>
@@ -232,12 +243,18 @@
             else { alertBox.style.display = 'none'; }
         }
 
+        // FUNGSI WHATSAPP OTOMATIS
+        function kirimWA(data) {
+            const pesan = `*INFO TUGAS PSI-4C*%0A---------------------------%0A📚 *Matkul:* ${data.mataKuliah}%0A📝 *Tugas:* ${data.tugas}%0A⏳ *Deadline:* ${data.deadline}%0A📍 *Kumpul di:* ${data.lokasi}%0A%0A*Detail:* ${data.deskripsi || '-'}%0A---------------------------%0A_Cek selengkapnya di Dashboard Web_`;
+            const urlWA = `https://api.whatsapp.com/send?text=${pesan}`;
+            window.open(urlWA, '_blank');
+        }
+
         async function handleKirim() {
             const btn = document.getElementById('btn-kirim');
             const fileInput = document.getElementById('in-file');
             const payload = {
-                action: document.getElementById('edit-id').value ? 'update' : 'create',
-                id: document.getElementById('edit-id').value,
+                action: 'create',
                 mataKuliah: document.getElementById('in-mk').value,
                 tugas: document.getElementById('in-tugas').value,
                 deskripsi: document.getElementById('in-desc').value,
@@ -258,20 +275,18 @@
             }
 
             try {
+                // Kirim ke Google Sheets
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                alert("Berhasil!"); location.reload();
-            } catch (e) { alert("Kesalahan sistem!"); btn.innerText = "Kirim"; btn.disabled = false; }
-        }
-
-        function editTugas(tugas, mk, desc, dl, lokasi) {
-            document.getElementById('edit-id').value = tugas;
-            document.getElementById('in-mk').value = mk;
-            document.getElementById('in-tugas').value = tugas;
-            document.getElementById('in-desc').value = desc;
-            document.getElementById('in-dl').value = dl;
-            document.getElementById('in-lokasi').value = lokasi;
-            document.getElementById('form-title').innerText = "Edit Tugas";
-            document.getElementById('modal-admin').classList.remove('hidden');
+                
+                // Trigger WhatsApp
+                kirimWA(payload);
+                
+                alert("Berhasil disimpan! WhatsApp akan terbuka."); 
+                location.reload();
+            } catch (e) { 
+                alert("Kesalahan sistem!"); 
+                btn.innerText = "Kirim & Share WA"; btn.disabled = false; 
+            }
         }
 
         async function hapusTugas(tugas) {
@@ -287,11 +302,11 @@
                 is_admin = true;
                 document.getElementById('login-section').classList.add('hidden'); 
                 document.getElementById('input-section').classList.remove('hidden'); 
-                muatData(); // Refresh tampilan untuk memunculkan tombol edit/hapus
+                muatData();
             } else { alert("Kunci Salah!"); } 
         }
 
-        function hitungSisaHari(d) { if(!d || d === "bb") return null; try { const dl = new Date(d); if(isNaN(dl.getTime())) return null; const ni = new Date(); ni.setHours(0,0,0,0); return Math.ceil((dl - ni)/(1000*60*60*24)); } catch(e){ return null; } }
+        function hitungSisaHari(d) { if(!d || d.toLowerCase() === "bb") return null; try { const dl = new Date(d); if(isNaN(dl.getTime())) return null; const ni = new Date(); ni.setHours(0,0,0,0); return Math.ceil((dl - ni)/(1000*60*60*24)); } catch(e){ return null; } }
         function togglePassword() { const input = document.getElementById('admin-key'); const icon = document.getElementById('eye-icon'); if (input.type === 'password') { input.type = 'text'; icon.innerText = '🙈'; } else { input.type = 'password'; icon.innerText = '👁️'; } }
         function toggleTugas(el, id, idx) { const s = JSON.parse(localStorage.getItem('tugasSelesai') || '{}'); s[id] = el.checked; localStorage.setItem('tugasSelesai', JSON.stringify(s)); if(el.checked) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); setTimeout(() => muatData(), 500); }
         function cekWaktuAktif(j, h) { const d = new Date(); const hs = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d); if (h.toLowerCase() !== hs.toLowerCase()) return false; try { const js = d.getHours() + (d.getMinutes() / 60); const ja = j.split('-')[0].trim().replace('.', ':'); const [hr, m] = ja.split(':').map(Number); return (js >= (hr + m/60 - 0.5) && js <= (hr + m/60 + 1.5)); } catch (e) { return false; } }
