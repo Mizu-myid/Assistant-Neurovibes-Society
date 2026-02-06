@@ -17,18 +17,18 @@
         header { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding: 50px 20px; text-align: center; }
         #jadwal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
         .card-hari { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 28px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
-        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; min-width: 120px; text-align: right; }
+        .waktu-box { display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; min-width: 110px; text-align: right; }
         .text-glow { color: var(--primary); text-shadow: 0 0 12px rgba(92, 103, 242, 0.5); font-weight: 800; }
         .border-samar { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
         .tugas-done { opacity: 0.5; filter: grayscale(0.8); }
         .tugas-done h3 { text-decoration: line-through; }
-        .countdown-tag { font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+        .countdown-tag { font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; cursor: pointer; }
         .tag-urgent { background: #fee2e2; color: #ef4444; }
         .tag-safe { background: #f0fdf4; color: #22c55e; }
         .btn-music { position: fixed; bottom: 24px; right: 24px; z-index: 100; background: white; padding: 12px; border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.1); cursor: pointer; border:none; }
         #smart-alert { display: none; background: #312e81; color: white; padding: 12px 20px; border-radius: 20px; font-size: 12px; margin-bottom: 20px; }
         .box-lokasi-tugas { background: rgba(92, 103, 242, 0.08); border: 1px dashed rgba(92, 103, 242, 0.3); border-radius: 12px; padding: 8px; margin-top: 10px; }
-        .admin-btn { font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; transition: all 0.2s; }
+        .admin-btn { font-size: 9px; font-weight: 800; padding: 4px 12px; border-radius: 8px; text-transform: uppercase; transition: all 0.2s; }
     </style>
 </head>
 <body>
@@ -59,10 +59,10 @@
                     <span class="text-xl">📝</span>
                     <h2 class="font-bold text-slate-800 uppercase text-sm">Tugas PJ Terbaru</h2>
                 </div>
-                <button onclick="muatData()" class="text-[10px] bg-white/50 px-3 py-1 rounded-full font-bold text-slate-500 hover:bg-white transition uppercase">🔄 Refresh Data</button>
+                <span class="text-[10px] bg-white/50 px-3 py-1 rounded-full font-bold text-slate-500 uppercase">Database: Live Sync</span>
             </div>
             <div id="tugas-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <p class="text-slate-400 text-xs text-center col-span-full italic">Menghubungkan ke database...</p>
+                <p class="text-slate-400 text-xs text-center col-span-full">Sinkronisasi data...</p>
             </div>
         </section>
 
@@ -81,15 +81,17 @@
                 <h3 class="font-bold text-xl mb-6 text-center text-slate-800">Login PJ Matkul</h3>
                 <div class="relative mb-4">
                     <input type="password" id="admin-key" onkeydown="if(event.key==='Enter') prosesLogin()" placeholder="Masukkan Kunci Akses" class="w-full bg-slate-50 border-0 p-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-center font-bold">
-                    <button onclick="togglePassword()" id="eye-btn" class="absolute right-4 top-4 text-slate-400">👁️</button>
+                    <button onclick="togglePassword()" id="eye-btn" class="absolute right-4 top-4 text-slate-400 hover:text-indigo-600 transition">
+                        <span id="eye-icon">👁️</span>
+                    </button>
                 </div>
                 <button onclick="prosesLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Masuk</button>
-                <button onclick="toggleAdmin()" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase text-center">Batal</button>
+                <button onclick="toggleAdmin()" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest text-center">Batal</button>
             </div>
             
             <div id="input-section" class="hidden space-y-4 max-h-[80vh] overflow-y-auto pr-2">
-                <h3 id="form-title" class="font-bold text-lg text-indigo-700 text-center uppercase">Input Tugas Baru</h3>
-                <input type="hidden" id="edit-id-val">
+                <h3 id="form-title" class="font-bold text-lg text-indigo-700 text-center">Input Tugas Baru</h3>
+                <input type="hidden" id="edit-id">
                 <select id="in-mk" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
                     <option>Psikologi Islam</option><option>Psikologi Konsumen</option><option>Asesmen Kepribadian I</option>
                     <option>Psikologi Belajar</option><option>Falsafah Kesatuan Ilmu</option><option>Desain dan Teknik Pelatihan</option>
@@ -97,17 +99,17 @@
                     <option>Psikologi Kepemimpinan</option><option>Psikologi Kesehatan</option>
                 </select>
                 <input type="text" id="in-tugas" placeholder="Nama/Judul Tugas" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
-                <textarea id="in-desc" placeholder="Deskripsi/Detail Tugas (BB, Materi, dll)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none h-24 resize-none"></textarea>
-                <input type="text" id="in-dl" placeholder="Deadline (DD-MM-YYYY)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
+                <textarea id="in-desc" placeholder="Deskripsi/Detail Tugas (Materi, dll)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none h-24 resize-none"></textarea>
+                <input type="text" id="in-dl" placeholder="Deadline (Tgl-Bln-Thn Contoh: 17-08-2024)" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
                 <input type="text" id="in-lokasi" placeholder="Lokasi Pengumpulan" class="w-full bg-slate-50 border-0 p-4 rounded-2xl text-sm outline-none">
                 
-                <div id="file-upload-container" class="bg-slate-50 p-4 rounded-2xl">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">Lampiran Gambar/File (Opsional)</label>
+                <div class="bg-slate-50 p-4 rounded-2xl">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">Ganti Lampiran (Opsional)</label>
                     <input type="file" id="in-file" class="text-xs w-full">
                 </div>
 
                 <button id="btn-kirim" onclick="handleKirim()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Simpan & Share WA</button>
-                <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-4 uppercase text-center">Logout</button>
+                <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-4 uppercase tracking-widest text-center">Logout</button>
             </div>
         </div>
     </div>
@@ -115,22 +117,38 @@
     <script>
         const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
         const CSV_TUGAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=53529564&single=true&output=csv';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytJyR3q4pABh1q9h2BfOrNc9L-ktf37MI17wTgtIxZ3b9E81kERcRdJSWQ0gcuEIdi/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0ym1RZcGNUAo5-uHxl96VEaNmgg_nj1uEGHskzhAa1XB0iKLIjYRsQwNu-ihSLWPV/exec'; 
         const KUNCI_VALID = ["PJKELAS4C", "PJ_PSIKOLOGI", "ADMIN4C"];
         let is_admin = false;
-        let dataTugasMentah = [];
+        let ALL_TUGAS_DATA = [];
 
         async function muatData() {
             const cacheBuster = `&t=${new Date().getTime()}`;
-            // Pengoptimalan: Memuat data secara paralel untuk kecepatan
-            Promise.all([
-                fetch(CSV_JADWAL + cacheBuster).then(r => r.text()),
-                fetch(CSV_TUGAS + cacheBuster).then(r => r.text())
-            ]).then(([jadwalRaw, tugasRaw]) => {
-                tampilkanJadwal(Papa.parse(jadwalRaw, {header:true}).data);
-                dataTugasMentah = Papa.parse(tugasRaw, {header:true}).data;
-                tampilkanTugas(dataTugasMentah);
-            });
+            const proxy = 'https://api.allorigins.win/raw?url=';
+            
+            // Menggunakan Promise.all agar loading barengan dan lebih cepat
+            try {
+                const [resJadwal, resTugas] = await Promise.all([
+                    fetch(proxy + encodeURIComponent(CSV_JADWAL + cacheBuster)).then(r => r.text()),
+                    fetch(proxy + encodeURIComponent(CSV_TUGAS + cacheBuster)).then(r => r.text())
+                ]);
+
+                Papa.parse(resJadwal, { header: true, complete: res => tampilkanJadwal(res.data) });
+                Papa.parse(resTugas, { header: true, complete: res => {
+                    ALL_TUGAS_DATA = res.data;
+                    tampilkanTugas(res.data);
+                }});
+            } catch (e) { console.error("Gagal muat data"); }
+        }
+
+        function hitungJamSelesai(jamMulai, sks) {
+            if(!jamMulai || !sks) return "";
+            try {
+                let jClean = jamMulai.replace('.', ':');
+                let [jam, menit] = jClean.split(':').map(Number);
+                let totalMenit = (jam * 60) + menit + (parseInt(sks) * 50);
+                return `${Math.floor(totalMenit / 60).toString().padStart(2, '0')}:${(totalMenit % 60).toString().padStart(2, '0')}`;
+            } catch(e) { return ""; }
         }
 
         function tampilkanJadwal(data) {
@@ -150,23 +168,22 @@
                     grupHari[hari].forEach((j, index) => {
                         const stylePembatas = index !== grupHari[hari].length - 1 ? 'border-samar pb-6 mb-6' : '';
                         const isAktif = cekWaktuAktif(j.Jam, hari);
-                        
-                        // FIX: Pemisahan Nama Dosen (Menghapus spasi berlebih dan merapikan baris)
-                        let dosenFix = j.Dosen ? j.Dosen.split(',').map(d => d.trim()).join('<br>') : '-';
+                        let dosenFix = j.Dosen ? j.Dosen : '-';
                         let jamStart = j.Jam ? j.Jam.replace(/wib/gi, "").trim() : '00:00';
                         let sksVal = j['SKS'] || '2';
+                        let jamEnd = j['Jam Selesai'] || hitungJamSelesai(jamStart, sksVal); 
 
                         isiHTML += `
                             <div class="${stylePembatas} flex justify-between items-start gap-4">
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center flex-wrap gap-2 mb-1">
+                                    <div class="flex items-center gap-2 mb-1">
                                         <h3 class="font-bold text-sm leading-tight ${isAktif ? 'text-glow' : 'text-slate-800'}">${j['Mata Kuliah']}</h3>
-                                        <span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-black">${sksVal} SKS</span>
+                                        <span class="text-[8px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-black whitespace-nowrap">${sksVal} SKS</span>
                                     </div>
                                     <p class="text-[10px] text-slate-400 font-medium leading-relaxed">${dosenFix}</p>
                                 </div>
                                 <div class="waktu-box">
-                                    <span class="text-[10px] font-bold text-indigo-600 tracking-wide mb-1">${jamStart} WIB</span>
+                                    <span class="text-[10px] font-bold text-indigo-600 tracking-wide mb-1">${jamStart} - ${jamEnd} WIB</span>
                                     <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter bg-slate-100 px-2 py-1 rounded">📍 ${j.Ruang}</span>
                                 </div>
                             </div>`;
@@ -183,18 +200,15 @@
             const statusSimpanan = JSON.parse(localStorage.getItem('tugasSelesai') || '{}');
             let mndsk = 0;
 
-            data.forEach((item) => {
+            data.forEach((item, index) => {
                 const namaTugas = item['Tugas'];
-                const idUnik = item['ID'];
-                if(!namaTugas || !idUnik) return;
+                if(!namaTugas) return;
 
-                const isD = statusSimpanan[idUnik] || false;
+                const idRow = item['ID'] || namaTugas.replace(/\s/g, '');
+                const isD = statusSimpanan[idRow] || false;
                 const sisa = hitungSisaHari(item['Deadline']);
                 
                 if (!isD && sisa !== null && sisa <= 2 && sisa >= 0) mndsk++;
-                
-                // Format Tampilan Tanggal Indonesia (DD-MM-YYYY)
-                let tglIndo = item['Deadline'];
                 let tagText = sisa === null ? "Cek Deadline" : (sisa < 0 ? "Selesai" : `${sisa} Hari Lagi`);
                 let tagClass = (sisa !== null && sisa <= 2 && sisa >= 0) ? "tag-urgent" : (sisa < 0 ? "bg-slate-200 text-slate-500" : "tag-safe");
 
@@ -202,14 +216,14 @@
                     <div class="bg-white/60 p-5 rounded-3xl border border-white backdrop-blur-sm shadow-sm ${isD ? 'tugas-done' : ''}">
                         <div class="flex justify-between items-center mb-3">
                             <p class="text-[9px] font-bold text-indigo-500 uppercase">${item['Mata Kuliah']}</p>
-                            <span onclick="cekInfoDeadline('${tagText}', '${tglIndo}')" class="countdown-tag ${tagClass}">${tagText}</span>
+                            <span class="countdown-tag ${tagClass}">${tagText}</span>
                         </div>
                         <div class="flex gap-3">
-                            <input type="checkbox" ${isD ? 'checked' : ''} onchange="toggleTugas(this, '${idUnik}')" class="mt-1 w-4 h-4 rounded text-indigo-600">
+                            <input type="checkbox" ${isD ? 'checked' : ''} onchange="toggleTugas(this, '${idRow}')" class="mt-1 w-4 h-4 rounded text-indigo-600">
                             <div class="flex-1">
                                 <h3 class="font-bold text-slate-800 text-sm">${namaTugas}</h3>
                                 ${item['Deskripsi'] ? `<p class="text-[10px] text-slate-500 mt-1 italic line-clamp-2">${item['Deskripsi']}</p>` : ''}
-                                <p class="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-wider">📅 Deadline: ${tglIndo}</p>
+                                <p class="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-wider">📅 Deadline: ${item['Deadline']}</p>
                                 <div class="box-lokasi-tugas">
                                     <p class="text-[8px] text-indigo-400 font-bold uppercase tracking-widest">Lokasi Pengumpulan:</p>
                                     <p class="text-[11px] text-slate-600 font-semibold italic">${item['Lokasi Pengumpulan'] || '-'}</p>
@@ -217,8 +231,8 @@
                                 ${item['Link File'] ? `<a href="${item['Link File']}" target="_blank" class="inline-block mt-3 text-[10px] bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold">📂 Lihat Lampiran</a>` : ''}
                                 ${is_admin ? `
                                 <div class="flex gap-2 mt-4 pt-3 border-t border-slate-100">
-                                    <button onclick="bukaEdit('${idUnik}')" class="admin-btn bg-amber-100 text-amber-600">Edit</button>
-                                    <button onclick="hapusTugas('${idUnik}')" class="admin-btn bg-red-100 text-red-600">Hapus</button>
+                                    <button onclick="siapEdit('${idRow}')" class="admin-btn bg-amber-100 text-amber-600">Edit</button>
+                                    <button onclick="hapusTugas('${idRow}', '${namaTugas}')" class="admin-btn bg-red-100 text-red-600">Hapus</button>
                                 </div>` : ''}
                             </div>
                         </div>
@@ -228,27 +242,30 @@
             else { alertBox.style.display = 'none'; }
         }
 
-        // LOGIKA EDIT TUGAS
-        function bukaEdit(id) {
-            const t = dataTugasMentah.find(x => x.ID === id);
+        // FUNGSI EDIT
+        function siapEdit(id) {
+            const t = ALL_TUGAS_DATA.find(x => x.ID == id || x.Tugas.replace(/\s/g, '') == id);
             if(!t) return;
             document.getElementById('form-title').innerText = "Edit Tugas";
-            document.getElementById('edit-id-val').value = t.ID;
+            document.getElementById('edit-id').value = id;
             document.getElementById('in-mk').value = t['Mata Kuliah'];
             document.getElementById('in-tugas').value = t['Tugas'];
             document.getElementById('in-desc').value = t['Deskripsi'];
             document.getElementById('in-dl').value = t['Deadline'];
             document.getElementById('in-lokasi').value = t['Lokasi Pengumpulan'];
-            document.getElementById('file-upload-container').classList.add('hidden'); // Sembunyikan upload file saat edit
-            toggleAdmin();
+            document.getElementById('btn-kirim').innerText = "Simpan Perubahan";
+            // Scroll ke atas form
+            document.getElementById('input-section').scrollTop = 0;
         }
 
         async function handleKirim() {
             const btn = document.getElementById('btn-kirim');
-            const idEdit = document.getElementById('edit-id-val').value;
+            const fileInput = document.getElementById('in-file');
+            const editId = document.getElementById('edit-id').value;
+            
             const payload = {
-                action: idEdit ? 'edit' : 'create',
-                id: idEdit,
+                action: editId ? 'update' : 'create',
+                id: editId || null,
                 mataKuliah: document.getElementById('in-mk').value,
                 tugas: document.getElementById('in-tugas').value,
                 deskripsi: document.getElementById('in-desc').value,
@@ -256,12 +273,11 @@
                 lokasi: document.getElementById('in-lokasi').value
             };
 
-            if(!payload.tugas || !payload.deadline) return alert("Nama Tugas & Deadline wajib diisi!");
+            if(!payload.tugas || !payload.deadline) return alert("Isi Nama Tugas & Deadline!");
             btn.innerText = "Memproses..."; btn.disabled = true;
 
-            // Handle file hanya jika 'create'
-            if(!idEdit && document.getElementById('in-file').files.length > 0) {
-                const file = document.getElementById('in-file').files[0];
+            if(fileInput.files.length > 0) {
+                const file = fileInput.files[0];
                 const reader = new FileReader();
                 payload.file = await new Promise(resolve => {
                     reader.onload = e => resolve({ base64: e.target.result.split(',')[1], name: file.name, type: file.type });
@@ -271,18 +287,22 @@
 
             try {
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                
-                // Formating pesan WA
-                const pesan = `*UPDATE TUGAS PSI-4C*%0A📚 *Matkul:* ${payload.mataKuliah}%0A📝 *Tugas:* ${payload.tugas}%0A⏳ *Deadline:* ${payload.deadline}%0A📍 *Kumpul:* ${payload.lokasi}`;
-                window.open(`https://api.whatsapp.com/send?text=${pesan}`, '_blank');
-                
-                alert("Berhasil!"); 
+                kirimWA(payload);
+                alert("Berhasil disimpan!"); 
                 location.reload();
-            } catch (e) { alert("Error!"); btn.disabled = false; }
+            } catch (e) { 
+                alert("Gagal terhubung!"); 
+                btn.innerText = "Simpan & Share WA"; btn.disabled = false; 
+            }
         }
 
-        async function hapusTugas(id) {
-            if(!confirm("Hapus tugas ini secara permanen?")) return;
+        function kirimWA(data) {
+            const pesan = `*INFO TUGAS PSI-4C*%0A---------------------------%0A📚 *Matkul:* ${data.mataKuliah}%0A📝 *Tugas:* ${data.tugas}%0A⏳ *Deadline:* ${data.deadline}%0A📍 *Kumpul:* ${data.lokasi}%0A%0A_Cek detail di Web Dashboard!_`;
+            window.open(`https://api.whatsapp.com/send?text=${pesan}`, '_blank');
+        }
+
+        async function hapusTugas(id, nama) {
+            if(!confirm(`Hapus tugas: ${nama}?`)) return;
             try {
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', id: id }) });
                 alert("Terhapus!"); location.reload();
@@ -292,20 +312,13 @@
         function hitungSisaHari(d) { 
             if(!d || d.toLowerCase() === "bb") return null; 
             try { 
+                // Format input: DD-MM-YYYY
                 const parts = d.split('-');
-                const dl = parts.length === 3 ? new Date(parts[2], parts[1]-1, parts[0]) : new Date(d);
-                if(isNaN(dl.getTime())) return null; 
+                if(parts.length !== 3) return null;
+                const dl = new Date(parts[2], parts[1]-1, parts[0]);
                 const ni = new Date(); ni.setHours(0,0,0,0); 
                 return Math.ceil((dl - ni)/(1000*60*60*24)); 
             } catch(e){ return null; } 
-        }
-
-        function toggleTugas(el, id) { 
-            const s = JSON.parse(localStorage.getItem('tugasSelesai') || '{}'); 
-            s[id] = el.checked; 
-            localStorage.setItem('tugasSelesai', JSON.stringify(s)); 
-            if(el.checked) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); 
-            setTimeout(() => tampilkanTugas(dataTugasMentah), 500); 
         }
 
         function prosesLogin() { 
@@ -313,26 +326,26 @@
                 is_admin = true;
                 document.getElementById('login-section').classList.add('hidden'); 
                 document.getElementById('input-section').classList.remove('hidden'); 
-                tampilkanTugas(dataTugasMentah);
+                tampilkanTugas(ALL_TUGAS_DATA);
             } else { alert("Kunci Salah!"); } 
         }
 
+        function togglePassword() { const input = document.getElementById('admin-key'); const icon = document.getElementById('eye-icon'); if (input.type === 'password') { input.type = 'text'; icon.innerText = '🙈'; } else { input.type = 'password'; icon.innerText = '👁️'; } }
+        function toggleTugas(el, id) { const s = JSON.parse(localStorage.getItem('tugasSelesai') || '{}'); s[id] = el.checked; localStorage.setItem('tugasSelesai', JSON.stringify(s)); if(el.checked) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); setTimeout(() => tampilkanTugas(ALL_TUGAS_DATA), 500); }
         function cekWaktuAktif(j, h) { 
             const d = new Date(); 
             const hs = new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(d); 
             if (h.toLowerCase() !== hs.toLowerCase()) return false; 
-            try {
-                const now = d.getHours() + (d.getMinutes()/60);
-                const jamMatkul = parseFloat(j.replace('.', ':').split(':')[0]);
-                return (now >= jamMatkul && now <= jamMatkul + 1.5);
-            } catch(e) { return false; }
+            try { 
+                const js = d.getHours() + (d.getMinutes() / 60); 
+                const ja = j.split('-')[0].trim().replace('.', ':'); 
+                const [hr, m] = ja.split(':').map(Number); 
+                return (js >= (hr + m/60 - 0.2) && js <= (hr + m/60 + 1.5)); 
+            } catch (e) { return false; } 
         }
-
         function toggleAdmin() { document.getElementById('modal-admin').classList.toggle('hidden'); }
         function logout() { location.reload(); }
         function toggleMusic() { const a = document.getElementById('bgm'); const b = document.getElementById('musicBtn'); if (a.paused) { a.play(); b.innerText = '🔊'; } else { a.pause(); b.innerText = '🔈'; } }
-        function cekInfoDeadline(status, tgl) { alert(`💡 Informasi Tugas:\nStatus: ${status}\nTanggal Deadline: ${tgl}`); }
-        function togglePassword() { const x = document.getElementById('admin-key'); x.type = x.type === "password" ? "text" : "password"; }
         window.onload = muatData;
     </script>
 </body>
