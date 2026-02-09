@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asisten PSI-4C | Smart Dashboard</title>
+    <title>Asisten PSI-4C | Smart Assistant Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -11,156 +11,125 @@
     <style>
         :root { --primary: #6366f1; --accent: #4338ca; }
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 50%, #e2e8f0 100%);
-            min-height: 100vh;
-            color: #1e293b;
+            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%); 
+            min-height: 100vh; color: #1e293b; overflow-x: hidden;
         }
+        
+        /* Floating Ethereal Background Items */
+        .orb { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.4; pointer-events: none; }
+        .orb-1 { width: 400px; height: 400px; background: #818cf8; top: -10%; left: -10%; animation: float 20s infinite alternate; }
+        .orb-2 { width: 300px; height: 300px; background: #c084fc; bottom: -5%; right: -5%; animation: float 15s infinite alternate-reverse; }
+        @keyframes float { from { transform: translate(0,0); } to { transform: translate(30px, 50px); } }
 
-        /* Animasi Latar Belakang Halus */
-        .glass-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-                        radial-gradient(circle at 90% 80%, rgba(192, 132, 252, 0.08) 0%, transparent 50%);
-        }
+        header { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.5); padding: 40px 20px; text-align: center; }
+        .card-hari { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.8); transition: transform 0.3s; }
+        .card-hari:hover { transform: translateY(-5px); }
 
-        header { 
-            background: rgba(255, 255, 255, 0.7); 
-            backdrop-filter: blur(20px); 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-            position: sticky; top: 0; z-index: 50;
-        }
-
-        .card-hari { 
-            background: rgba(255, 255, 255, 0.6); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.7); 
-            border-radius: 24px; padding: 20px;
-            transition: transform 0.2s;
-        }
-
-        .card-hari:hover { transform: translateY(-4px); }
-
-        .sks-badge {
-            font-size: 9px; font-weight: 800;
-            padding: 2px 6px; border-radius: 6px;
-            background: #e0e7ff; color: #4338ca;
-            margin-left: 8px; display: inline-block;
-            vertical-align: middle;
-        }
-
-        .waktu-box { text-align: right; min-width: 90px; }
-
-        .tugas-done { opacity: 0.6; filter: grayscale(0.5); }
-        .tugas-done h3 { text-decoration: line-through; }
-
-        .btn-music { 
-            position: fixed; bottom: 20px; right: 20px; z-index: 100; 
-            background: white; width: 50px; height: 50px; border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: none;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-        }
-
-        input, textarea, select { transition: all 0.2s; }
-        input:focus { ring: 2px solid var(--primary); }
-
-        /* Scrollbar kustom agar enteng */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .sks-tag { font-size: 10px; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 700; margin-left: 8px; display: inline-flex; align-items: center; vertical-align: middle; }
+        .waktu-box { text-align: right; min-width: 100px; }
+        .tag-urgent { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
+        .tag-safe { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        
+        .btn-music { position: fixed; bottom: 30px; left: 30px; z-index: 100; background: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); cursor: pointer; font-size: 20px; transition: 0.3s; border: 2px solid #eef2ff; }
+        .btn-music:active { transform: scale(0.9); }
+        
+        #smart-alert { background: #4338ca; color: white; padding: 14px 24px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 10px 20px -5px rgba(67, 56, 202, 0.4); display: none; align-items: center; gap: 12px; animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="glass-bg"></div>
-    <button onclick="toggleMusic()" id="musicBtn" class="btn-music shadow-indigo-200">🔈</button>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <button onclick="handleMusic()" id="musicBtn" class="btn-music">🔈</button>
     <audio id="bgm" loop preload="auto">
         <source src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Ketsa/Raising_Frequecy/Ketsa_-_09_-_Lullaby.mp3" type="audio/mpeg">
     </audio>
 
-    <header class="py-4 px-6 mb-8">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-extrabold tracking-tighter text-indigo-900">PSI-4C SMART</h1>
-                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">UIN Walisongo Semarang</p>
-            </div>
-            <button onclick="toggleAdmin()" class="bg-indigo-50 p-2 rounded-xl hover:bg-indigo-100 transition">
-                <span id="admin-icon">⚙️</span>
-            </button>
-        </div>
+    <header>
+        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tighter">PSI–4C SMART ASSISTANT</h1>
+        <p class="text-xs font-bold text-indigo-500 mt-1 uppercase tracking-widest">UIN Walisongo Semarang</p>
+        <button onclick="toggleAdmin()" class="absolute right-8 top-8 bg-white/50 p-3 rounded-2xl hover:bg-white shadow-sm transition-all border border-white">⚙️</button>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 pb-20">
-        <div id="smart-alert" class="hidden bg-indigo-900 text-white p-4 rounded-2xl mb-8 items-center gap-3 animate-pulse">
-            <span class="text-xl">🚀</span>
-            <p id="alert-text" class="text-xs font-bold uppercase tracking-wide"></p>
+    <main class="p-6 max-w-7xl mx-auto">
+        <div id="smart-alert">
+            <span class="text-xl">🔔</span>
+            <p id="alert-text" class="text-sm font-bold"></p>
         </div>
 
         <section class="mb-12">
-            <div class="flex items-center gap-2 mb-6">
-                <span class="text-lg">📝</span>
-                <h2 class="text-sm font-black uppercase text-slate-700">Deadline Tugas Terdekat</h2>
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <span class="text-white">📝</span>
+                    </div>
+                    <h2 class="font-bold text-slate-800 uppercase text-sm tracking-wider">Tugas PJ Terbaru</h2>
+                </div>
+                <div class="h-[2px] flex-1 mx-6 bg-slate-200 hidden md:block"></div>
+                <span class="text-[10px] bg-indigo-100 text-indigo-600 px-4 py-1.5 rounded-full font-extrabold uppercase shadow-sm">Live Sync</span>
             </div>
             <div id="tugas-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="col-span-full py-10 text-center text-slate-400 text-xs font-bold italic">
-                    Sinkronisasi database...
+                <div class="animate-pulse flex space-x-4 p-4">
+                    <div class="flex-1 space-y-4 py-1"><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-4 bg-slate-200 rounded"></div></div>
                 </div>
             </div>
         </section>
 
         <section>
-            <div class="flex items-center gap-2 mb-6">
-                <span class="text-lg">📅</span>
-                <h2 class="text-sm font-black uppercase text-slate-700">Jadwal Perkuliahan</h2>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-indigo-600">📅</span>
+                </div>
+                <h2 class="font-bold text-slate-800 uppercase text-sm tracking-wider">Jadwal Kuliah Mingguan</h2>
             </div>
-            <div id="jadwal-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="jadwal-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         </section>
     </main>
 
-    <div id="modal-admin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[1000]">
-        <div class="bg-white rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl">
-            <div id="login-section" class="p-8">
-                <h3 class="font-bold text-xl mb-2 text-slate-800">Akses PJ Matkul</h3>
-                <p class="text-xs text-slate-500 mb-6 font-medium">Masukkan kunci akses untuk kelola tugas.</p>
-                <input type="password" id="admin-key" placeholder="Kunci Akses" class="w-full bg-slate-100 border-none p-4 rounded-2xl mb-4 text-center font-bold">
-                <button onclick="prosesLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition">Verifikasi</button>
-                <button onclick="toggleAdmin()" class="w-full mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tutup</button>
+    <div id="modal-admin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center p-4 z-[1000]">
+        <div class="bg-white rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl p-8 border border-white/20">
+            <div id="login-section">
+                <h3 class="font-bold text-2xl mb-2 text-slate-800">Akses PJ Matkul</h3>
+                <p class="text-xs text-slate-400 mb-8 font-medium">Hanya untuk pengurus mata kuliah PSI-4C.</p>
+                <input type="password" id="admin-key" onkeydown="if(event.key==='Enter') prosesLogin()" placeholder="••••••••" class="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl focus:border-indigo-500 outline-none text-center font-bold tracking-widest mb-4 transition-all">
+                <button onclick="prosesLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-xl hover:bg-indigo-700 active:scale-95 transition-all">Masuk</button>
+                <button onclick="toggleAdmin()" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest text-center">Tutup</button>
             </div>
             
-            <div id="input-section" class="hidden p-8 max-h-[90vh] overflow-y-auto">
-                <h3 id="form-title" class="font-bold text-lg text-indigo-600 mb-4">Input Tugas Baru</h3>
-                <div class="space-y-3">
-                    <input type="hidden" id="edit-id">
-                    <select id="in-mk" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm font-semibold outline-none">
+            <div id="input-section" class="hidden space-y-4 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
+                <h3 id="form-title" class="font-bold text-xl text-indigo-700 mb-4">Input/Edit Tugas</h3>
+                <input type="hidden" id="edit-id">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Mata Kuliah</label>
+                    <select id="in-mk" class="w-full bg-slate-100 p-4 rounded-2xl text-sm outline-none border-none">
                         <option>Psikologi Islam</option><option>Psikologi Konsumen</option><option>Asesmen Kepribadian I</option>
                         <option>Psikologi Belajar</option><option>Falsafah Kesatuan Ilmu</option><option>Desain dan Teknik Pelatihan</option>
                         <option>Metodologi Penelitian Kuantitatif</option><option>Al Quran dan Hadits Tematik</option><option>Konstruksi Alat Ukur Psikologi</option>
                         <option>Psikologi Kepemimpinan</option><option>Psikologi Kesehatan</option>
                     </select>
-                    <input type="text" id="in-tugas" placeholder="Judul Tugas" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm outline-none">
-                    <textarea id="in-desc" placeholder="Deskripsi Tugas..." class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm outline-none h-24"></textarea>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[9px] font-bold text-slate-400 ml-2 uppercase">Deadline (Tgl-Bln-Thn)</label>
-                            <input type="text" id="in-dl" placeholder="15-05-2024" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm outline-none">
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-bold text-slate-400 ml-2 uppercase">Lokasi Kumpul</label>
-                            <input type="text" id="in-lokasi" placeholder="LMS / Email" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-sm outline-none">
-                        </div>
-                    </div>
-
-                    <div class="bg-indigo-50 p-4 rounded-2xl border border-dashed border-indigo-200">
-                        <label class="text-[9px] font-bold text-indigo-400 uppercase block mb-1">Lampiran File</label>
-                        <input type="file" id="in-file" class="text-[10px] w-full">
-                    </div>
-
-                    <button id="btn-kirim" onclick="handleKirim()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition">Simpan & Share</button>
-                    <button onclick="logout()" class="w-full text-red-400 text-[10px] font-black uppercase mt-2">Keluar Admin</button>
                 </div>
+                <input type="text" id="in-tugas" placeholder="Judul Tugas (Contoh: Resume Bab 1)" class="w-full bg-slate-100 p-4 rounded-2xl text-sm outline-none">
+                <textarea id="in-desc" placeholder="Detail tugas..." class="w-full bg-slate-100 p-4 rounded-2xl text-sm outline-none h-24 resize-none"></textarea>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Deadline (Tgl-Bln-Thn)</label>
+                        <input type="text" id="in-dl" placeholder="12-01-2026" class="w-full bg-slate-100 p-4 rounded-2xl text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-2">Lokasi Kumpul</label>
+                        <input type="text" id="in-lokasi" placeholder="Gdrive / Elena" class="w-full bg-slate-100 p-4 rounded-2xl text-sm outline-none">
+                    </div>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-2xl border-2 border-dashed border-indigo-200">
+                    <label class="text-[9px] font-bold text-indigo-400 uppercase block mb-2">Lampiran File (Opsional)</label>
+                    <input type="file" id="in-file" class="text-xs w-full cursor-pointer">
+                    <p id="existing-file-info" class="text-[8px] text-slate-400 mt-1 hidden italic">File lama tersimpan.</p>
+                </div>
+                <button id="btn-kirim" onclick="handleKirim()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-indigo-200 transition-all">Simpan & Bagikan</button>
+                <button onclick="logout()" class="w-full text-red-400 text-[10px] font-bold mt-2 uppercase tracking-widest text-center">Logout</button>
             </div>
         </div>
     </div>
@@ -168,166 +137,147 @@
     <script>
         const CSV_JADWAL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=0&single=true&output=csv';
         const CSV_TUGAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEdyFQd8lN5GLO04qrXlvY5lbMWRD6DZmArSEGmyOpAbUzDSFZHm6Vy_jlMC4nKcHCUZWmu6YpoHHJ/pub?gid=53529564&single=true&output=csv';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4XhCa55-8kOV4TLCNt5L-HeOSCz1PzWOIr9timzMXu49DCgF2wHT-hByjMVAXR8ZL/exec'; 
-        const KUNCI_VALID = ["PJKELAS4C", "PJ_PSIKOLOGI", "ADMIN4C"];
-        
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-aYdlHLxJS0S36tvOfufPOS_uL-WI7P2EMOg7Yl7v_4xCuKk9susN8o6cBb3cIn7g/exec'; 
+        const KUNCI_VALID = ["PJKELAS4C", "ADMIN4C"];
         let is_admin = false;
-        let dataTugasGlobal = [];
+        let cachedTugasData = [];
 
-        // Fungsi Load Data Paralel (Lebih Cepat)
-        async function muatData() {
-            const cacheBuster = `&t=${new Date().getTime()}`;
-            const proxy = 'https://api.allorigins.win/raw?url=';
-
-            try {
-                const [resJadwal, resTugas] = await Promise.all([
-                    fetch(proxy + encodeURIComponent(CSV_JADWAL + cacheBuster)).then(r => r.text()),
-                    fetch(proxy + encodeURIComponent(CSV_TUGAS + cacheBuster)).then(r => r.text())
-                ]);
-
-                Papa.parse(resJadwal, { header: true, complete: r => tampilkanJadwal(r.data) });
-                Papa.parse(resTugas, { header: true, complete: r => { 
-                    dataTugasGlobal = r.data;
-                    tampilkanTugas(r.data); 
-                }});
-            } catch (err) {
-                console.error("Gagal muat data:", err);
-            }
+        function parseDateIndo(dateStr) {
+            if (!dateStr || dateStr.toLowerCase() === 'bb') return null;
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return new Date(dateStr); // fallback ke format YYYY-MM-DD
+            return new Date(parts[2], parts[1] - 1, parts[0]);
         }
 
-        // Fungsi Hitung Jam Selesai yang Akurat
+        async function muatData() {
+            const cb = `?t=${Date.now()}`;
+            // Memanggil paralel agar lebih cepat
+            const [resJadwal, resTugas] = await Promise.all([
+                fetch(CSV_JADWAL + cb).then(r => r.text()),
+                fetch(CSV_TUGAS + cb).then(r => r.text())
+            ]);
+
+            Papa.parse(resJadwal, { header: true, complete: r => tampilkanJadwal(r.data) });
+            Papa.parse(resTugas, { header: true, complete: r => {
+                cachedTugasData = r.data;
+                tampilkanTugas(r.data);
+            }});
+        }
+
         function hitungJamSelesai(jamMulai, sks) {
-            if(!jamMulai || isNaN(parseInt(sks))) return "Selesai";
-            let cleanJam = jamMulai.replace('.', ':');
-            let [jam, menit] = cleanJam.split(':').map(Number);
-            let totalMenit = (jam * 60) + menit + (parseInt(sks) * 50);
-            return `${Math.floor(totalMenit / 60).toString().padStart(2, '0')}:${(totalMenit % 60).toString().padStart(2, '0')}`;
+            if(!jamMulai) return "--:--";
+            try {
+                let jamClean = jamMulai.toLowerCase().replace('wib', '').trim().replace('.', ':');
+                let [jam, menit] = jamClean.split(':').map(Number);
+                let totalMenit = (jam * 60) + menit + (parseInt(sks || 2) * 50);
+                return `${Math.floor(totalMenit / 60).toString().padStart(2, '0')}:${(totalMenit % 60).toString().padStart(2, '0')}`;
+            } catch(e) { return "--:--"; }
         }
 
         function tampilkanJadwal(data) {
             const container = document.getElementById('jadwal-grid');
             container.innerHTML = '';
-            const grupHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"].reduce((acc, h) => { acc[h] = []; return acc; }, {});
+            const grupHari = data.reduce((acc, item) => {
+                if(item.Hari) {
+                    if (!acc[item.Hari]) acc[item.Hari] = [];
+                    acc[item.Hari].push(item);
+                }
+                return acc;
+            }, {});
 
-            data.forEach(item => { if(item.Hari && grupHari[item.Hari]) grupHari[item.Hari].push(item); });
+            ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"].forEach(hari => {
+                if(!grupHari[hari]) return;
+                let cardsHTML = '';
+                grupHari[hari].forEach((j, idx) => {
+                    const sks = j.SKS ? j.SKS.replace(/sks/gi, '').trim() : "2";
+                    const jamStart = j.Jam ? j.Jam.replace(/wib/gi, '').trim() : "00:00";
+                    const jamEnd = hitungJamSelesai(jamStart, sks);
+                    // Handle Dosen: Pisahkan jika ada koma atau spasi panjang
+                    let dosenArr = j.Dosen ? j.Dosen.split(/[,;]|\s{2,}/) : ['-'];
+                    let dosenList = dosenArr.map(d => `<span class="block text-[10px] text-slate-500 font-medium leading-tight mb-1">○ ${d.trim()}</span>`).join('');
 
-            Object.keys(grupHari).forEach(hari => {
-                if(grupHari[hari].length === 0) return;
-                let cards = grupHari[hari].map((j, idx) => {
-                    const sksVal = j.SKS || '2';
-                    const jamStart = j.Jam ? j.Jam.trim() : '00.00';
-                    const jamEnd = hitungJamSelesai(jamStart, sksVal);
-                    // Perbaikan: Pisah Nama Dosen Berdasarkan Koma
-                    const dosenList = j.Dosen ? j.Dosen.split(',').map(d => d.trim()).join('<br>') : '-';
-                    
-                    return `
-                        <div class="${idx !== grupHari[hari].length-1 ? 'border-b border-slate-100 mb-4 pb-4' : ''} flex justify-between items-start">
-                            <div class="flex-1 pr-2">
-                                <h3 class="font-bold text-[13px] leading-tight text-slate-800 uppercase tracking-tight">
-                                    ${j['Mata Kuliah']} <span class="sks-badge">${sksVal} SKS</span>
-                                </h3>
-                                <p class="text-[10px] text-slate-500 mt-2 font-medium leading-relaxed">${dosenList}</p>
+                    cardsHTML += `
+                        <div class="flex justify-between items-start gap-4 ${idx !== grupHari[hari].length-1 ? 'border-b border-slate-50 pb-4 mb-4' : ''}">
+                            <div class="flex-1">
+                                <div class="mb-2">
+                                    <h4 class="font-bold text-sm text-slate-800 inline">${j['Mata Kuliah']}</h4>
+                                    <span class="sks-tag">${sks} SKS</span>
+                                </div>
+                                ${dosenList}
                             </div>
                             <div class="waktu-box">
-                                <p class="text-[10px] font-black text-indigo-600">${jamStart} - ${jamEnd}</p>
-                                <p class="text-[9px] font-bold text-slate-400 mt-1 uppercase">📍 ${j.Ruang || '-'}</p>
+                                <span class="block text-[11px] font-extrabold text-indigo-600 mb-1">${jamStart} - ${jamEnd}</span>
+                                <span class="inline-block text-[9px] font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500">📍 ${j.Ruang || '-'}</span>
                             </div>
-                        </div>
-                    `;
-                }).join('');
-
-                container.innerHTML += `
-                    <div class="card-hari">
-                        <div class="mb-5"><span class="bg-indigo-600 text-white text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest">${hari}</span></div>
-                        ${cards}
-                    </div>
-                `;
+                        </div>`;
+                });
+                container.innerHTML += `<div class="card-hari"><span class="inline-block bg-slate-800 text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase mb-6 tracking-widest shadow-lg shadow-slate-200">${hari}</span>${cardsHTML}</div>`;
             });
         }
 
         function tampilkanTugas(data) {
             const container = document.getElementById('tugas-list');
-            const alertBox = document.getElementById('smart-alert');
             container.innerHTML = '';
             const statusSimpanan = JSON.parse(localStorage.getItem('tugasSelesai') || '{}');
-            let mendesakCount = 0;
+            let mndsk = 0;
 
             data.forEach((item) => {
-                if(!item.Tugas && !item.tugas) return;
-                const namaTugas = item.Tugas || item.tugas;
-                const mk = item['Mata Kuliah'] || item.mataKuliah;
-                const idT = (namaTugas + mk).replace(/\s/g, '');
-                const isDone = statusSimpanan[idT] || false;
-                const sisa = hitungSisaHari(item.Deadline || item.deadline);
-                const lokasi = item['Lokasi Pengumpulan'] || item.lokasi || 'Belum Ditentukan';
+                if(!item.Tugas || !item.Deadline) return;
+                const idT = item.ID || item.Tugas.replace(/\s/g, '');
+                const isD = statusSimpanan[idT] || false;
+                const deadlineDate = parseDateIndo(item.Deadline);
                 
-                if(!isDone && sisa !== null && sisa <= 2 && sisa >= 0) mendesakCount++;
+                let sisa = null;
+                if(deadlineDate) {
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    sisa = Math.ceil((deadlineDate - today) / (1000*60*60*24));
+                }
 
-                let tagClass = sisa <= 1 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600";
-                let tagText = sisa < 0 ? "Selesai" : (sisa === 0 ? "Hari Ini!" : sisa + " Hari Lagi");
+                if (!isD && sisa !== null && sisa <= 2 && sisa >= 0) mndsk++;
+                
+                let tagText = sisa === null ? "Cek Deadline" : (sisa < 0 ? "Selesai" : `${sisa} Hari Lagi`);
+                let tagClass = (sisa !== null && sisa <= 2 && sisa >= 0) ? "tag-urgent" : (sisa < 0 ? "bg-slate-200" : "tag-safe");
 
                 container.innerHTML += `
-                    <div class="card-hari relative ${isDone ? 'tugas-done' : ''}">
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative ${isD ? 'opacity-40 grayscale-[0.5]' : ''}">
                         <div class="flex justify-between items-start mb-4">
-                            <span class="text-[9px] font-black text-indigo-500 uppercase tracking-wider">${mk}</span>
-                            <span class="text-[9px] font-black px-2 py-1 rounded-md ${tagClass}">${tagText}</span>
+                            <span class="text-[9px] font-extrabold text-indigo-500 uppercase tracking-widest">${item['Mata Kuliah']}</span>
+                            <span class="countdown-tag px-3 py-1 rounded-full font-bold text-[9px] ${tagClass}">${tagText}</span>
                         </div>
-                        <div class="flex gap-3">
-                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTugas(this, '${idT}')" class="mt-1 w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex gap-4">
+                            <input type="checkbox" ${isD ? 'checked' : ''} onchange="toggleTugas(this, '${idT}')" class="mt-1 w-5 h-5 rounded-lg border-slate-200 text-indigo-600 focus:ring-0 cursor-pointer">
                             <div class="flex-1">
-                                <h3 class="font-bold text-slate-800 text-[14px] leading-snug">${namaTugas}</h3>
-                                <p class="text-[10px] text-slate-500 mt-1 line-clamp-2 italic">${item.Deskripsi || item.deskripsi || ''}</p>
-                                
-                                <div class="mt-4 p-3 bg-white/50 rounded-xl border border-white">
-                                    <p class="text-[8px] font-black text-slate-400 uppercase">Lokasi Pengumpulan</p>
-                                    <p class="text-[11px] font-bold text-slate-700 truncate">${lokasi}</p>
+                                <h3 class="font-bold text-slate-800 text-sm leading-snug mb-1">${item.Tugas}</h3>
+                                <p class="text-[10px] text-slate-400 mb-3">${item.Deskripsi || 'Tidak ada deskripsi.'}</p>
+                                <div class="bg-indigo-50/50 p-3 rounded-2xl mb-3 border border-indigo-100/50">
+                                    <p class="text-[8px] font-bold text-indigo-400 uppercase mb-1">Lokasi Kumpul</p>
+                                    <p class="text-[11px] font-bold text-slate-700 italic">📍 ${item['Lokasi Pengumpulan'] || item.Lokasi || '-'}</p>
                                 </div>
-
-                                <div class="flex items-center justify-between mt-4">
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase">📅 ${item.Deadline || item.deadline}</span>
-                                    <div class="flex gap-2">
-                                        ${item['Link File'] || item.fileUrl ? `<a href="${item['Link File'] || item.fileUrl}" target="_blank" class="p-2 bg-indigo-50 text-indigo-600 rounded-lg text-[10px]">📂</a>` : ''}
-                                        ${is_admin ? `<button onclick="editTugas('${namaTugas}')" class="p-2 bg-amber-50 text-amber-600 rounded-lg text-[10px]">✏️</button>` : ''}
-                                        ${is_admin ? `<button onclick="hapusTugas('${namaTugas}')" class="p-2 bg-red-50 text-red-600 rounded-lg text-[10px]">🗑️</button>` : ''}
-                                    </div>
+                                <p class="text-[9px] font-black text-slate-800 uppercase">📅 Deadline: ${item.Deadline}</p>
+                                <div class="flex gap-2 mt-4">
+                                    ${item['Link File'] ? `<a href="${item['Link File']}" target="_blank" class="text-[9px] bg-slate-800 text-white px-4 py-1.5 rounded-full font-bold">📂 File</a>` : ''}
+                                    ${is_admin ? `
+                                        <button onclick="editTugas('${idT}')" class="text-[9px] bg-indigo-100 text-indigo-600 px-4 py-1.5 rounded-full font-bold">Edit</button>
+                                        <button onclick="hapusTugas('${idT}')" class="text-[9px] bg-red-50 text-red-500 px-4 py-1.5 rounded-full font-bold">Hapus</button>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-
-            if(mendesakCount > 0) {
-                alertBox.classList.remove('hidden');
-                alertBox.classList.add('flex');
-                document.getElementById('alert-text').innerText = `Ada ${mendesakCount} tugas mendekati deadline!`;
-            } else {
-                alertBox.classList.add('hidden');
-            }
-        }
-
-        // Fungsi Hitung Sisa Hari (Format input: DD-MM-YYYY)
-        function hitungSisaHari(tglStr) {
-            if(!tglStr || tglStr.toLowerCase() === 'bb') return null;
-            try {
-                // Mendukung format DD-MM-YYYY atau YYYY-MM-DD
-                let parts = tglStr.split(/[-/]/);
-                let tglObj;
-                if(parts[0].length === 4) tglObj = new Date(parts[0], parts[1]-1, parts[2]); // YYYY MM DD
-                else tglObj = new Date(parts[2], parts[1]-1, parts[0]); // DD MM YYYY
-                
-                const hariIni = new Date();
-                hariIni.setHours(0,0,0,0);
-                const diff = Math.ceil((tglObj - hariIni) / (1000 * 60 * 60 * 24));
-                return diff;
-            } catch(e) { return null; }
+            const alertBox = document.getElementById('smart-alert');
+            if(mndsk > 0) { alertBox.style.display = 'flex'; document.getElementById('alert-text').innerText = `Ada ${mndsk} tugas yang harus segera dikumpulkan!`; }
+            else alertBox.style.display = 'none';
         }
 
         async function handleKirim() {
             const btn = document.getElementById('btn-kirim');
+            const fileInput = document.getElementById('in-file');
+            const editId = document.getElementById('edit-id').value;
+            
             const payload = {
-                action: document.getElementById('edit-id').value ? 'edit' : 'create',
-                oldId: document.getElementById('edit-id').value,
+                action: editId ? 'edit' : 'create',
+                id: editId,
                 mataKuliah: document.getElementById('in-mk').value,
                 tugas: document.getElementById('in-tugas').value,
                 deskripsi: document.getElementById('in-desc').value,
@@ -335,10 +285,9 @@
                 lokasi: document.getElementById('in-lokasi').value
             };
 
-            if(!payload.tugas || !payload.deadline) return alert("Nama Tugas & Deadline wajib diisi!");
-            btn.innerText = "Mengunggah..."; btn.disabled = true;
+            if(!payload.tugas || !payload.deadline) return alert("Wajib isi Nama Tugas & Deadline!");
+            btn.innerText = "Processing..."; btn.disabled = true;
 
-            const fileInput = document.getElementById('in-file');
             if(fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 const reader = new FileReader();
@@ -350,70 +299,61 @@
 
             try {
                 await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                
-                // Kirim WA jika tugas baru
-                if(payload.action === 'create') {
-                    const waPesan = `*INFO TUGAS PSI-4C*%0A---------------------------%0A📚 *Matkul:* ${payload.mataKuliah}%0A📝 *Tugas:* ${payload.tugas}%0A⏳ *Deadline:* ${payload.deadline}%0A📍 *Kumpul:* ${payload.lokasi}%0A%0A_Cek selengkapnya di Dashboard Web_`;
-                    window.open(`https://api.whatsapp.com/send?text=${waPesan}`, '_blank');
-                }
-                
-                alert("Data berhasil diperbarui!");
+                const pesanWA = `*INFO TUGAS PSI-4C*%0A---------------------------%0A📚 *Matkul:* ${payload.mataKuliah}%0A📝 *Tugas:* ${payload.tugas}%0A⏳ *Deadline:* ${payload.deadline}%0A📍 *Lokasi:* ${payload.lokasi}%0A%0A_Update via Dashboard Web_`;
+                window.open(`https://api.whatsapp.com/send?text=${pesanWA}`, '_blank');
                 location.reload();
-            } catch(e) {
-                alert("Gagal terhubung ke server.");
-                btn.disabled = false; btn.innerText = "Simpan & Share";
-            }
+            } catch (e) { alert("Sistem Error!"); btn.disabled = false; }
         }
 
-        function editTugas(namaTugas) {
-            const t = dataTugasGlobal.find(x => (x.Tugas || x.tugas) === namaTugas);
+        function editTugas(id) {
+            const t = cachedTugasData.find(item => item.ID == id);
             if(!t) return;
-            document.getElementById('form-title').innerText = "Edit Tugas";
-            document.getElementById('edit-id').value = namaTugas;
-            document.getElementById('in-mk').value = t['Mata Kuliah'] || t.mataKuliah;
-            document.getElementById('in-tugas').value = t.Tugas || t.tugas;
-            document.getElementById('in-desc').value = t.Deskripsi || t.deskripsi;
-            document.getElementById('in-dl').value = t.Deadline || t.deadline;
-            document.getElementById('in-lokasi').value = t['Lokasi Pengumpulan'] || t.lokasi;
-            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('form-title').innerText = "Edit Tugas PJ";
+            document.getElementById('edit-id').value = t.ID;
+            document.getElementById('in-mk').value = t['Mata Kuliah'];
+            document.getElementById('in-tugas').value = t.Tugas;
+            document.getElementById('in-desc').value = t.Deskripsi;
+            document.getElementById('in-dl').value = t.Deadline;
+            document.getElementById('in-lokasi').value = t['Lokasi Pengumpulan'] || t.Lokasi;
+            if(t['Link File']) document.getElementById('existing-file-info').classList.remove('hidden');
             document.getElementById('input-section').classList.remove('hidden');
+            document.getElementById('login-section').classList.add('hidden');
         }
 
-        async function hapusTugas(namaTugas) {
-            if(!confirm("Hapus tugas ini secara permanen?")) return;
+        async function hapusTugas(id) {
+            if(!confirm("Yakin ingin menghapus tugas ini?")) return;
             try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', id: namaTugas }) });
-                alert("Terhapus!"); location.reload();
-            } catch(e) { alert("Gagal menghapus."); }
+                await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', id: id }) });
+                alert("Berhasil dihapus!"); location.reload();
+            } catch (e) { alert("Gagal!"); }
         }
 
-        function prosesLogin() {
-            if(KUNCI_VALID.includes(document.getElementById('admin-key').value)) {
+        function handleMusic() {
+            const a = document.getElementById('bgm');
+            const b = document.getElementById('musicBtn');
+            if (a.paused) { a.play().catch(() => alert("Interaksi diperlukan untuk memutar audio.")); b.innerText = '🔊'; } 
+            else { a.pause(); b.innerText = '🔈'; }
+        }
+
+        function prosesLogin() { 
+            if(KUNCI_VALID.includes(document.getElementById('admin-key').value.toUpperCase())) { 
                 is_admin = true;
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('input-section').classList.remove('hidden');
-                tampilkanTugas(dataTugasGlobal);
-            } else { alert("Kunci akses salah!"); }
+                document.getElementById('login-section').classList.add('hidden'); 
+                document.getElementById('input-section').classList.remove('hidden'); 
+                muatData();
+            } else alert("Kunci Salah!"); 
         }
 
         function toggleTugas(el, id) {
             const s = JSON.parse(localStorage.getItem('tugasSelesai') || '{}');
             s[id] = el.checked;
             localStorage.setItem('tugasSelesai', JSON.stringify(s));
-            if(el.checked) confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
-            setTimeout(() => tampilkanTugas(dataTugasGlobal), 600);
+            if(el.checked) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#a855f7'] });
+            setTimeout(() => muatData(), 500);
         }
 
         function toggleAdmin() { document.getElementById('modal-admin').classList.toggle('hidden'); }
         function logout() { location.reload(); }
-        
-        function toggleMusic() {
-            const a = document.getElementById('bgm');
-            const b = document.getElementById('musicBtn');
-            if (a.paused) { a.play(); b.innerText = '🔊'; b.classList.add('animate-bounce'); } 
-            else { a.pause(); b.innerText = '🔈'; b.classList.remove('animate-bounce'); }
-        }
-
         window.onload = muatData;
     </script>
 </body>
